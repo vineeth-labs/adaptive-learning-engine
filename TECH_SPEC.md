@@ -16,50 +16,59 @@ The backend architecture is built utilizing a modular monolith pattern.
 * **Backend**: Python with FastAPI (for asynchronous endpoints capable of handling concurrent IO-bound LLM requests).
 * **Database**: PostgreSQL (utilizing the `ltree` extension for hierarchical data and `JSONB` for unstructured payloads).
 * **ORM & Migrations**: SQLAlchemy 2.0 with async engine and Alembic.
-* **Cache & Background Jobs**: Redis paired with Celery (to handle LLM calls taking 2-10 seconds asynchronously).
 * **LLM Integration**: OpenAI `gpt-4o` (Diagnostic Evaluator) and `gpt-4o-mini` (Scenario Generator). Relies strictly on OpenAI's Structured Outputs with Pydantic schemas.
 ---
 
-## 3. Core Modules
+### 3\. Core Modules (Simplified MVP)
 
-### 3.1. Knowledge Graph Design
-* Represented as a highly structured **Directed Acyclic Graph (DAG)**.
-* **Nodes**: Encapsulate discrete atomic concepts (e.g., "Polymorphism"). Contains metadata (cognitive difficulty, semantic embeddings) via JSONB.
-* **Edges**: Define pedagogical relationships such as `prerequisite_of`, `related_to`, and `part_of`. Modeled using PostgreSQL `ltree` and secondary associative tables.
+#### 3.1. Knowledge Graph Design
 
-### 3.2. Learner Model Design
-* Decoupled from the static knowledge graph. For every user, a personalized overlay maps graph nodes to state vectors.
-* **State Vector Variables**:
-  1. **Mastery (M)**: Probabilistic estimate (0.0 to 1.0) of understanding. Updated via a modified Bayesian Knowledge Tracing (BKT) heuristic.
-  2. **Confidence (C)**: Inferred/self-reported psychological certainty (0.0 to 1.0).
-  3. **Retention (R)**: Probability of recall, modeled via Free Spaced Repetition Scheduler (FSRS).
-  4. **Evidence Count (E)**: Number of historical interactions. Defines system certainty and dictates the dynamic learning rate.
-  5. **Misconceptions**: JSON array of detected anti-patterns, forcing immediate targeted remediation.
+The domain (Java Interview Preparation) is represented as a lightweight Directed Acyclic Graph (DAG) to establish learning pathways.
 
-### 3.3. Assessment Engine
-* Employs modified Computerized Adaptive Testing (CAT) integrated with Item Response Theory (IRT) and graph topology.
-* **Q-Matrix**: Bipartite mapping connecting a single crafted technical scenario to multiple concepts simultaneously.
-* **Algorithm**: Calculates Shannon Entropy for candidate "frontier" nodes. Groups related nodes into clusters and prompts the LLM to generate a scenario that resolves the maximum amount of uncertainty (Information Gain).
-* **Graph Pruning**: Demonstrating mastery of foundational concepts implicitly updates/prunes dependent nodes.
+*   **Nodes**: Represent discrete atomic concepts (e.g., "Polymorphism", "Volatile Keyword").    
+*   **Edges**: Define pedagogical dependencies, strictly utilizing prerequisite_of relationships to govern graph traversal.
+*   **Implementation**: Stored in PostgreSQL. Hierarchical traversal and path mapping are managed using the ltree extension, enabling rapid querying of dependencies.
 
-### 3.4. LLM System Design
-Modular, single-purpose agents communicating via strict Pydantic schemas to prevent hallucinations.
-* **Agent 1: Scenario Generator**: Creates minimal-fatigue, multi-concept assessment items based on entropy clusters.
-* **Agent 2: Diagnostic Evaluator**: Evaluates user response against targeted concepts, returning continuous mastery scores, identifying explicit misconceptions, and assessing linguistic confidence.
-* **Agent 3: Concept Extractor**: Parses raw docs/transcripts into atomic nodes and edges for PostgreSQL ingestion.
+#### 3.2. Learner Model Design
 
-### 3.5. Recommendation Engine
-* Operates as a personalized ranking system computing an **Action Priority Score** to determine the "Next Best Topic".
-* **Pruning**: Nodes lacking minimum prerequisite mastery ($M < 0.75$) are filtered out.
-* **Scoring Heuristics**:
-  * **Gap Function**: Prioritizes low mastery.
-  * **Review Function**: Spikes if spaced-repetition retention drops below the optimal threshold (90%).
-  * **Centrality Function**: Prioritizes nodes with high out-degree (foundational bottlenecks).
-  * **Fatigue Function**: Penalizes recently interacted nodes.
+The mathematical representation of the user's cognitive state is decoupled from the static knowledge graph. For every user, a personalized overlay maps graph nodes to individual state vectors.
 
-### 3.6. Spaced Repetition (FSRS)
-* Replaces legacy SM-2 with Free Spaced Repetition Scheduler (FSRS) tracking Retrievability (R), Stability (S), and Difficulty (D).
-* Utilizes advanced power function approximation for memory decay. Background chronological jobs continuously calculate $R$ and inject review prompts when $R$ approaches 0.90.
+*   **State Vector Variables** (Stored per concept):
+
+    1.  **Mastery (M)**: A continuous score from 0.0 to 1.0 representing understanding. This is updated using a weighted moving average when new evaluations occur.
+    2.  **Evidence Count (E)**: An integer representing the number of times the user has been evaluated on a specific concept. This dictates the system's confidence in the current Mastery score.
+    3.  **Misconceptions**: A JSON array of explicit anti-patterns, foundational errors, or critical flaws extracted by the LLM (e.g., "Believes wait() does not require holding a monitor lock"). The presence of data here flags the concept for immediate remediation.
+        
+
+#### 3.3. Assessment Engine
+
+The engine orchestrates the evaluation process using a dependency-aware "Frontier" heuristic to minimize user fatigue.
+
+*   **Target Selection**: The engine queries the database to identify "Frontier Concepts"—nodes where all prerequisites have achieved a minimum Mastery threshold (> 0.7), but the node itself has a low or zero Evidence Count.
+*   **Scenario Generation**: The engine selects 2 to 3 related Frontier Concepts and prompts the LLM to construct a single, cohesive technical scenario (e.g., a specific debugging task or architectural review) that evaluates them simultaneously.
+*   **Pruning**: If a user demonstrates high mastery on an advanced node, the engine cascades a baseline mastery score downwards to its immediate prerequisites, avoiding redundant testing.
+    
+
+#### 3.4. LLM System Design
+
+The platform's generative capabilities are decoupled into distinct, single-purpose agents to ensure reliability. All system outputs are strictly enforced using OpenAI's Structured Outputs with Pydantic models mapped to JSON Schemas.
+
+*   **Agent 1: Scenario Generator**: Receives a cluster of target concepts and generates a highly focused, open-ended technical question that weaves the concepts together naturally.
+
+*   **Agent 2: Diagnostic Evaluator**: Analyzes the user's free-text or code response against the target concepts. It outputs a strict schema containing the updated Mastery scores and any explicitly detected Misconceptions.
+    
+
+#### 3.5. Recommendation Engine
+
+The Recommendation Engine acts as the platform's navigational core, utilizing a deterministic, priority-based routing system to dictate the user's next action.
+
+*   **Hard Blocking**: Any concept whose immediate prerequisites have a Mastery < 0.75 is entirely hidden from the recommendation pool.
+    
+*   **Next Best Action Logic**:
+    
+    1.  **Priority 1 (Remediation)**: If the user's state vector contains active Misconceptions, the system immediately surfaces a targeted micro-lesson to correct the specific flaw before allowing forward progress.
+    2.  **Priority 2 (Exploration)**: If no critical remediation is required, the system selects the available Frontier Concept with the lowest Evidence Count to expand the user's mapped graph.
+    3.  **Priority 3 (Improvement)**: To reinforce weak areas, the system selects an available concept with a low Mastery score that has already been encountered.
 
 ---
 
@@ -81,7 +90,6 @@ The complete PostgreSQL schema definition is maintained separately and can be fo
 * `assessments` (The generated scenarios)
 * `assessment_results` (The Q-matrix multi-concept mapping)
 * `recommendations` (Audit log for engine decisions)
-* `learning_sessions`
 
 ---
 

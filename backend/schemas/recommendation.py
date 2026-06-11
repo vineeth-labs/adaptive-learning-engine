@@ -4,16 +4,16 @@ from typing import List, Dict, Any, Optional
 from uuid import UUID
 
 class ActionType(str, Enum):
-    ASSESS = "ASSESS"
-    REVIEW = "REVIEW"
-    TEACH = "TEACH"
+    ASSESS = "assess"
+    REVIEW = "review"
+    TEACH = "teach"
 
 class RecommendationDetail(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     concept_id: UUID
     concept_name: str
-    score: float
+    score: float = Field(..., validation_alias="score_calculated")
     score_breakdown: Dict[str, float] = Field(
         default_factory=dict, 
         description="Weight breakdown: gap, review, centrality, fatigue"

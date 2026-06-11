@@ -18,9 +18,11 @@ class AssessmentSubmissionRequest(BaseModel):
     concept_ids: List[UUID] = Field(..., min_length=1)
     scenario_text: str = Field(..., description="The multi-concept scenario user responded to")
     user_response: str = Field(..., description="The user's response text/code")
+    response_latency_ms: Optional[int] = Field(None, description="Time taken by learner in milliseconds")
 
 # POST /api/v1/assessments/evaluate Response Receipt
 class AssessmentSubmissionResponse(BaseModel):
+    assessment_id: UUID
     task_id: str
     status: str = "queued"
     message: str

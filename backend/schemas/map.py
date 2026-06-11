@@ -15,19 +15,16 @@ class ConceptNode(BaseModel):
     
     # Overlayed learner state (default values if no state exists yet)
     mastery: float = 0.0
-    confidence: float = 0.0
-    fsrs_stability: float = 0.0
-    fsrs_difficulty: float = 5.0
-    last_interaction_at: Optional[datetime] = None
     evidence_count: int = 0
     misconceptions: List[str] = Field(default_factory=list)
+    last_interaction_at: Optional[datetime] = None
 
 class ConceptEdge(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     source_id: UUID
     target_id: UUID
-    relation_type: Literal["prerequisite", "related", "part_of"]
+    relation_type: Literal["prerequisite"]
 
 class UserMapResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

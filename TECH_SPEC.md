@@ -4,121 +4,117 @@ This technical specification outlines the architecture, data models, and impleme
 
 # Technical Specification: AI Competency Mapping MVP
 
-## 1. Core Technology Stack
-*   **Backend**: Python 3.10+ with **FastAPI** (asynchronous for LLM I/O).
-*   **Database**: **PostgreSQL** with `ltree` (for hierarchies) and `JSONB` (for dynamic metadata).
-*   **ORM**: SQLAlchemy 2.0 (Async) with Alembic for migrations.
-*   **AI Orchestration**: OpenAI SDK using **Structured Outputs** (Pydantic-enforced).
-*   **Task Queue**: Redis + Celery (for background LLM processing).
-*   **Frontend**: React with **React Flow** or D3.js for the Directed Acyclic Graph (DAG) visualization.
+## 1. Product Overview
+
+The platform operates on a dynamic graph-traversal paradigm, shifting away from a traditional "course consumption" model to a "continuous diagnostic and remediation" model. It addresses metacognitive blindness by providing users with a precise mathematical model of their actual capabilities, forgotten concepts, and optimal next steps. 
+* **MVP Scope**: Java Interview Preparation.
+* **User Journey**: Goal Initialization -> Baseline Diagnostic -> Active Learning Loop -> Maintenance Reassessment.
+* **Core Interface**: "Competency Map" (a Directed Acyclic Graph rendering) overlaid with user's mastery states.
+
+## 2. Architecture & Technology Stack
+The backend architecture is built utilizing a modular monolith pattern.
+* **Backend**: Python with FastAPI (for asynchronous endpoints capable of handling concurrent IO-bound LLM requests).
+* **Database**: PostgreSQL (utilizing the `ltree` extension for hierarchical data and `JSONB` for unstructured payloads).
+* **ORM & Migrations**: SQLAlchemy 2.0 with async engine and Alembic.
+* **Cache & Background Jobs**: Redis paired with Celery (to handle LLM calls taking 2-10 seconds asynchronously).
+* **LLM Integration**: OpenAI `gpt-4o` (Diagnostic Evaluator) and `gpt-4o-mini` (Scenario Generator). Relies strictly on OpenAI's Structured Outputs with Pydantic schemas.
+---
+
+## 3. Core Modules
+
+### 3.1. Knowledge Graph Design
+* Represented as a highly structured **Directed Acyclic Graph (DAG)**.
+* **Nodes**: Encapsulate discrete atomic concepts (e.g., "Polymorphism"). Contains metadata (cognitive difficulty, semantic embeddings) via JSONB.
+* **Edges**: Define pedagogical relationships such as `prerequisite_of`, `related_to`, and `part_of`. Modeled using PostgreSQL `ltree` and secondary associative tables.
+
+### 3.2. Learner Model Design
+* Decoupled from the static knowledge graph. For every user, a personalized overlay maps graph nodes to state vectors.
+* **State Vector Variables**:
+  1. **Mastery (M)**: Probabilistic estimate (0.0 to 1.0) of understanding. Updated via a modified Bayesian Knowledge Tracing (BKT) heuristic.
+  2. **Confidence (C)**: Inferred/self-reported psychological certainty (0.0 to 1.0).
+  3. **Retention (R)**: Probability of recall, modeled via Free Spaced Repetition Scheduler (FSRS).
+  4. **Evidence Count (E)**: Number of historical interactions. Defines system certainty and dictates the dynamic learning rate.
+  5. **Misconceptions**: JSON array of detected anti-patterns, forcing immediate targeted remediation.
+
+### 3.3. Assessment Engine
+* Employs modified Computerized Adaptive Testing (CAT) integrated with Item Response Theory (IRT) and graph topology.
+* **Q-Matrix**: Bipartite mapping connecting a single crafted technical scenario to multiple concepts simultaneously.
+* **Algorithm**: Calculates Shannon Entropy for candidate "frontier" nodes. Groups related nodes into clusters and prompts the LLM to generate a scenario that resolves the maximum amount of uncertainty (Information Gain).
+* **Graph Pruning**: Demonstrating mastery of foundational concepts implicitly updates/prunes dependent nodes.
+
+### 3.4. LLM System Design
+Modular, single-purpose agents communicating via strict Pydantic schemas to prevent hallucinations.
+* **Agent 1: Scenario Generator**: Creates minimal-fatigue, multi-concept assessment items based on entropy clusters.
+* **Agent 2: Diagnostic Evaluator**: Evaluates user response against targeted concepts, returning continuous mastery scores, identifying explicit misconceptions, and assessing linguistic confidence.
+* **Agent 3: Concept Extractor**: Parses raw docs/transcripts into atomic nodes and edges for PostgreSQL ingestion.
+
+### 3.5. Recommendation Engine
+* Operates as a personalized ranking system computing an **Action Priority Score** to determine the "Next Best Topic".
+* **Pruning**: Nodes lacking minimum prerequisite mastery ($M < 0.75$) are filtered out.
+* **Scoring Heuristics**:
+  * **Gap Function**: Prioritizes low mastery.
+  * **Review Function**: Spikes if spaced-repetition retention drops below the optimal threshold (90%).
+  * **Centrality Function**: Prioritizes nodes with high out-degree (foundational bottlenecks).
+  * **Fatigue Function**: Penalizes recently interacted nodes.
+
+### 3.6. Spaced Repetition (FSRS)
+* Replaces legacy SM-2 with Free Spaced Repetition Scheduler (FSRS) tracking Retrievability (R), Stability (S), and Difficulty (D).
+* Utilizes advanced power function approximation for memory decay. Background chronological jobs continuously calculate $R$ and inject review prompts when $R$ approaches 0.90.
 
 ---
 
-## 2. Database Schema (PostgreSQL)
+## 4. Database Schema (PostgreSQL)
 The schema implements a **Directed Acyclic Graph (DAG)** to model knowledge and a decoupled **Learner State** for personalization.
 
-```sql
--- Core Knowledge Graph
-CREATE EXTENSION IF NOT EXISTS "ltree";
+Strict adherence to 3NF for transactional data, JSONB for unstructured data, and `ltree` for hierarchy.
 
-CREATE TABLE concepts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    path ltree, -- e.g., 'Java.Concurrency.Locks'
-    difficulty_weight FLOAT CHECK (difficulty_weight BETWEEN 0 AND 1),
-    metadata JSONB DEFAULT '{}' -- Stores interview traps, prompts, etc.
-);
+### Schema Definition
+The complete PostgreSQL schema definition is maintained separately and can be found at:
 
-CREATE TABLE concept_relationships (
-    source_id UUID REFERENCES concepts(id),
-    target_id UUID REFERENCES concepts(id),
-    relation_type VARCHAR(50), -- 'prerequisite_of', 'part_of'
-    PRIMARY KEY (source_id, target_id, relation_type)
-);
+`database/schema.sql`
 
--- Learner Model (The Personalized Overlay)
-CREATE TABLE learner_state (
-    user_id UUID REFERENCES users(id),
-    concept_id UUID REFERENCES concepts(id),
-    mastery FLOAT DEFAULT 0.0,      -- Probabilistic estimate (0.0-1.0)
-    confidence FLOAT DEFAULT 0.0,   -- Inferred psychological certainty
-    fsrs_stability FLOAT DEFAULT 0.0, -- Memory stability in days
-    evidence_count INT DEFAULT 0,   -- Number of interactions
-    misconceptions JSONB DEFAULT '[]', -- Array of detected anti-patterns
-    PRIMARY KEY (user_id, concept_id)
-);
-```
+* `users`
+* `domains`
+* `concepts` (Uses `ltree` for hierarchical paths)
+* `concept_relationships` (Cross-cutting DAG dependencies)
+* `learner_state` (Tracks mastery, confidence, retention, evidence count, and misconceptions)
+* `assessments` (The generated scenarios)
+* `assessment_results` (The Q-matrix multi-concept mapping)
+* `recommendations` (Audit log for engine decisions)
+* `learning_sessions`
 
 ---
 
-## 3. System Architecture (Modular Monolith)
-The project is organized into modular services to allow for future scaling while keeping the MVP simple.
-
-```text
-/backend
-├── /api
-│   └── /routes          # FastAPI endpoints (map, recommendation, assessment)
-├── /db
-│   ├── /models          # SQLAlchemy models
-│   └── /queries         # Ltree-based graph traversal logic
-├── /services
-│   ├── /llm             # OpenAI wrappers (ScenarioGen, DiagnosticEval)
-│   ├── /learner         # BKT and FSRS mathematical update logic
-│   └── /recommender     # Entropy-based "Next Best Action" scoring
-├── /schemas             # Pydantic models for type-safe I/O
-└── /worker              # Celery background tasks for LLM calls
-```
-
----
-
-## 4. Key Implementation Logic
-
-### A. The Mastery Update (BKT Heuristic)
-Every time an LLM evaluates a user response ($S_{obs}$), the mastery ($M$) is updated using an exponentially weighted moving average:
-$$M_{new} = M_{old} + \alpha \cdot (S_{obs} - M_{old})$$
-Where the learning rate ($\alpha$) decays as evidence ($E$) grows: $\alpha = \frac{1}{1 + 0.5 \cdot E}$.
-
-### B. Adaptive Questioning (Shannon Entropy)
-To minimize fatigue, the engine selects concepts with the highest uncertainty ($M \approx 0.5$).
-*   **Algorithm**: Identify "frontier" nodes where prerequisites are mastered but the node itself is unproven. Group these into clusters and generate a single multi-concept scenario.
-
-### C. Recommendation Scoring
-The engine ranks the "Next Best Action" using a weighted formula:
-$$Score_i = w_1 \cdot f_{gap}(M_i) + w_2 \cdot f_{review}(R_i) + w_3 \cdot f_{centrality}(G_i) - w_4 \cdot f_{fatigue}(E_i)$$
-*   **Hard Pruning**: Any node whose prerequisites have mastery $< 0.75$ is excluded from recommendations.
-
----
-
-## 5. LLM Agent Specifications
-The MVP uses two primary agents with **Strict JSON Outputs**.
-
-### Agent 1: Diagnostic Evaluator (GPT-4o)
-*   **Goal**: Analyze text/code for specific Java concepts.
-*   **Pydantic Schema Output**:
-    ```python
-    class ConceptEvaluation(BaseModel):
-        concept_id: str
-        mastery_score: float  # 0.0 to 1.0
-        evidence_quote: str   # Exact string from user response
-        misconception: Optional[str]
-    ```
-
-### Agent 2: Scenario Generator (GPT-4o-mini)
-*   **Goal**: Create a single cohesive scenario (debugging or design task) that simultaneously tests a cluster of 3–4 concepts.
-
----
-
-## 6. MVP API Endpoints
+## 5. MVP API Endpoints
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/v1/users/{id}/map` | Returns the DAG with user mastery color-coding. |
 | `GET` | `/api/v1/recommendation/next` | Returns the next action (Assess, Review, or Teach). |
 | `POST` | `/api/v1/assessments/evaluate` | Submits user response to the async evaluation queue. |
-| `GET` | `/api/v1/assessments/status/{id}` | Polls for LLM evaluation completion. |
+| `GET` | `/api/v1/assessments/status/{id}` | Polls for completion of the asynchronous LLM evaluation. |
 
 ---
 
-## 7. Implementation Constraints
-*   **Domain Focus**: Strictly Java Interview Preparation (Concurrent collections, JVM Memory, Threading).
-*   **Excluded Features**: No video hosting, no social chat, no gamified leaderboards, no manual note-taking.
-*   **Performance**: Graph traversals for prerequisite checks must execute in milliseconds using `ltree` indexes.
+## 6. Project Folder Structure
+
+```text
+/backend
+  /api
+    /routes           # FastAPI endpoint definitions
+    /dependencies     # Auth token validation and DB session injection
+  /core
+    /config           # Pydantic BaseSettings for env vars
+    /security         # JWT generation and hashing logic
+  /db
+    /models           # SQLAlchemy ORM models
+    /migrations       # Alembic version control
+    /queries          # Raw SQL and ltree specific abstractions
+  /services
+    /llm              # OpenAI client wrappers, Prompts, Structured Outputs
+    /graph            # DAG traversal algorithms
+    /learner          # BKT heuristic and FSRS mathematical logic
+    /recommender      # Scoring and ranking heuristic algorithms
+  /schemas            # Pydantic models for I/O and LLM Strict Parsing
+  /worker             # Celery background task definitions
+  main.py             # FastAPI application entrypoint
+

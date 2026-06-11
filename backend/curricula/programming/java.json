@@ -1,0 +1,616 @@
+{
+    "concepts": [
+        {
+            "name": "Java",
+            "path": "java",
+            "difficulty": 0.0
+        },
+        {
+            "name": "JDK",
+            "path": "java.fundamentals.jdk",
+            "difficulty": 0.05
+        },
+        {
+            "name": "JRE",
+            "path": "java.fundamentals.jre",
+            "difficulty": 0.05
+        },
+        {
+            "name": "JVM",
+            "path": "java.fundamentals.jvm",
+            "difficulty": 0.10
+        },
+        {
+            "name": "Variables",
+            "path": "java.basics.variables",
+            "difficulty": 0.10
+        },
+        {
+            "name": "Data Types",
+            "path": "java.basics.data_types",
+            "difficulty": 0.10
+        },
+        {
+            "name": "Operators",
+            "path": "java.basics.operators",
+            "difficulty": 0.10
+        },
+        {
+            "name": "Type Casting",
+            "path": "java.basics.type_casting",
+            "difficulty": 0.15
+        },
+        {
+            "name": "Conditional Statements",
+            "path": "java.control_flow.conditionals",
+            "difficulty": 0.15
+        },
+        {
+            "name": "Loops",
+            "path": "java.control_flow.loops",
+            "difficulty": 0.15
+        },
+        {
+            "name": "Break Continue",
+            "path": "java.control_flow.break_continue",
+            "difficulty": 0.20
+        },
+        {
+            "name": "Methods",
+            "path": "java.functions.methods",
+            "difficulty": 0.20
+        },
+        {
+            "name": "Method Overloading",
+            "path": "java.functions.overloading",
+            "difficulty": 0.25
+        },
+        {
+            "name": "Recursion",
+            "path": "java.functions.recursion",
+            "difficulty": 0.35
+        },
+        {
+            "name": "Arrays",
+            "path": "java.collections.arrays",
+            "difficulty": 0.25
+        },
+        {
+            "name": "Strings",
+            "path": "java.collections.strings",
+            "difficulty": 0.20
+        },
+        {
+            "name": "ArrayList",
+            "path": "java.collections.arraylist",
+            "difficulty": 0.30
+        },
+        {
+            "name": "Classes",
+            "path": "java.oop.classes",
+            "difficulty": 0.30
+        },
+        {
+            "name": "Objects",
+            "path": "java.oop.objects",
+            "difficulty": 0.30
+        },
+        {
+            "name": "Constructors",
+            "path": "java.oop.constructors",
+            "difficulty": 0.35
+        },
+        {
+            "name": "Encapsulation",
+            "path": "java.oop.encapsulation",
+            "difficulty": 0.40
+        },
+        {
+            "name": "Inheritance",
+            "path": "java.oop.inheritance",
+            "difficulty": 0.45
+        },
+        {
+            "name": "Polymorphism",
+            "path": "java.oop.polymorphism",
+            "difficulty": 0.50
+        },
+        {
+            "name": "Abstraction",
+            "path": "java.oop.abstraction",
+            "difficulty": 0.50
+        },
+        {
+            "name": "Interfaces",
+            "path": "java.oop.interfaces",
+            "difficulty": 0.55
+        },
+        {
+            "name": "Exception Handling",
+            "path": "java.exceptions.exception_handling",
+            "difficulty": 0.40
+        },
+        {
+            "name": "Custom Exceptions",
+            "path": "java.exceptions.custom_exceptions",
+            "difficulty": 0.55
+        },
+        {
+            "name": "Generics",
+            "path": "java.generics.generics",
+            "difficulty": 0.60
+        },
+        {
+            "name": "Wildcards",
+            "path": "java.generics.wildcards",
+            "difficulty": 0.70
+        },
+        {
+            "name": "Collections Framework",
+            "path": "java.collections_framework",
+            "difficulty": 0.55
+        },
+        {
+            "name": "List",
+            "path": "java.collections_framework.list",
+            "difficulty": 0.55
+        },
+        {
+            "name": "Set",
+            "path": "java.collections_framework.set",
+            "difficulty": 0.55
+        },
+        {
+            "name": "Map",
+            "path": "java.collections_framework.map",
+            "difficulty": 0.60
+        },
+        {
+            "name": "HashMap",
+            "path": "java.collections_framework.hashmap",
+            "difficulty": 0.65
+        },
+        {
+            "name": "HashSet",
+            "path": "java.collections_framework.hashset",
+            "difficulty": 0.65
+        },
+        {
+            "name": "TreeMap",
+            "path": "java.collections_framework.treemap",
+            "difficulty": 0.70
+        },
+        {
+            "name": "Streams API",
+            "path": "java.functional.streams",
+            "difficulty": 0.70
+        },
+        {
+            "name": "Lambda Expressions",
+            "path": "java.functional.lambda",
+            "difficulty": 0.65
+        },
+        {
+            "name": "Functional Interfaces",
+            "path": "java.functional.functional_interfaces",
+            "difficulty": 0.65
+        },
+        {
+            "name": "Optional",
+            "path": "java.functional.optional",
+            "difficulty": 0.65
+        },
+        {
+            "name": "File Handling",
+            "path": "java.io.file_handling",
+            "difficulty": 0.55
+        },
+        {
+            "name": "NIO",
+            "path": "java.io.nio",
+            "difficulty": 0.75
+        },
+        {
+            "name": "Serialization",
+            "path": "java.io.serialization",
+            "difficulty": 0.70
+        },
+        {
+            "name": "Threads",
+            "path": "java.concurrency.threads",
+            "difficulty": 0.70
+        },
+        {
+            "name": "Synchronization",
+            "path": "java.concurrency.synchronization",
+            "difficulty": 0.80
+        },
+        {
+            "name": "Executor Framework",
+            "path": "java.concurrency.executors",
+            "difficulty": 0.80
+        },
+        {
+            "name": "CompletableFuture",
+            "path": "java.concurrency.completable_future",
+            "difficulty": 0.85
+        },
+        {
+            "name": "Locks",
+            "path": "java.concurrency.locks",
+            "difficulty": 0.85
+        },
+        {
+            "name": "JVM Memory Model",
+            "path": "java.jvm.memory_model",
+            "difficulty": 0.85
+        },
+        {
+            "name": "Garbage Collection",
+            "path": "java.jvm.garbage_collection",
+            "difficulty": 0.90
+        },
+        {
+            "name": "Class Loading",
+            "path": "java.jvm.class_loading",
+            "difficulty": 0.85
+        },
+        {
+            "name": "Bytecode",
+            "path": "java.jvm.bytecode",
+            "difficulty": 0.90
+        },
+        {
+            "name": "Reflection",
+            "path": "java.advanced.reflection",
+            "difficulty": 0.85
+        },
+        {
+            "name": "Annotations",
+            "path": "java.advanced.annotations",
+            "difficulty": 0.75
+        },
+        {
+            "name": "Dynamic Proxies",
+            "path": "java.advanced.dynamic_proxies",
+            "difficulty": 0.90
+        },
+        {
+            "name": "Design Patterns",
+            "path": "java.design_patterns",
+            "difficulty": 0.75
+        },
+        {
+            "name": "Singleton Pattern",
+            "path": "java.design_patterns.singleton",
+            "difficulty": 0.75
+        },
+        {
+            "name": "Factory Pattern",
+            "path": "java.design_patterns.factory",
+            "difficulty": 0.80
+        },
+        {
+            "name": "Builder Pattern",
+            "path": "java.design_patterns.builder",
+            "difficulty": 0.80
+        },
+        {
+            "name": "Maven",
+            "path": "java.build.maven",
+            "difficulty": 0.50
+        },
+        {
+            "name": "Gradle",
+            "path": "java.build.gradle",
+            "difficulty": 0.60
+        },
+        {
+            "name": "JUnit",
+            "path": "java.testing.junit",
+            "difficulty": 0.55
+        },
+        {
+            "name": "Mockito",
+            "path": "java.testing.mockito",
+            "difficulty": 0.65
+        }
+    ],
+    "relationships": [
+        {
+            "source": "JDK",
+            "target": "JRE",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "JRE",
+            "target": "JVM",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Variables",
+            "target": "Data Types",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Data Types",
+            "target": "Operators",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Operators",
+            "target": "Type Casting",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Variables",
+            "target": "Conditional Statements",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Conditional Statements",
+            "target": "Loops",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Loops",
+            "target": "Break Continue",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Loops",
+            "target": "Methods",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Methods",
+            "target": "Method Overloading",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Methods",
+            "target": "Recursion",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Methods",
+            "target": "Arrays",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Arrays",
+            "target": "ArrayList",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Methods",
+            "target": "Classes",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Classes",
+            "target": "Objects",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Objects",
+            "target": "Constructors",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Classes",
+            "target": "Encapsulation",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Encapsulation",
+            "target": "Inheritance",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Inheritance",
+            "target": "Polymorphism",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Polymorphism",
+            "target": "Abstraction",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Abstraction",
+            "target": "Interfaces",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Methods",
+            "target": "Exception Handling",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Exception Handling",
+            "target": "Custom Exceptions",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Interfaces",
+            "target": "Generics",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Generics",
+            "target": "Wildcards",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "ArrayList",
+            "target": "Collections Framework",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Collections Framework",
+            "target": "List",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Collections Framework",
+            "target": "Set",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Collections Framework",
+            "target": "Map",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Map",
+            "target": "HashMap",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Set",
+            "target": "HashSet",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Map",
+            "target": "TreeMap",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Interfaces",
+            "target": "Functional Interfaces",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Functional Interfaces",
+            "target": "Lambda Expressions",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Lambda Expressions",
+            "target": "Streams API",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Streams API",
+            "target": "Optional",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Exception Handling",
+            "target": "File Handling",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "File Handling",
+            "target": "NIO",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "File Handling",
+            "target": "Serialization",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Classes",
+            "target": "Threads",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Threads",
+            "target": "Synchronization",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Synchronization",
+            "target": "Locks",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Synchronization",
+            "target": "Executor Framework",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Executor Framework",
+            "target": "CompletableFuture",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Threads",
+            "target": "JVM Memory Model",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "JVM",
+            "target": "Class Loading",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Class Loading",
+            "target": "Bytecode",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "JVM Memory Model",
+            "target": "Garbage Collection",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Classes",
+            "target": "Annotations",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Annotations",
+            "target": "Reflection",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Reflection",
+            "target": "Dynamic Proxies",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Interfaces",
+            "target": "Design Patterns",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Design Patterns",
+            "target": "Singleton Pattern",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Design Patterns",
+            "target": "Factory Pattern",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Design Patterns",
+            "target": "Builder Pattern",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Classes",
+            "target": "JUnit",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "JUnit",
+            "target": "Mockito",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Java",
+            "target": "Maven",
+            "relation_type": "prerequisite"
+        },
+        {
+            "source": "Maven",
+            "target": "Gradle",
+            "relation_type": "prerequisite"
+        }
+    ]
+}

@@ -7,6 +7,7 @@ from .assessment import (
     TaskStatus,
     AssessmentStatusResponse,
 )
+from .domain import DomainResponse, ConceptResponse
 
 __all__ = [
     "ConceptNode",
@@ -20,4 +21,6 @@ __all__ = [
     "AssessmentSubmissionResponse",
     "TaskStatus",
     "AssessmentStatusResponse",
+    "DomainResponse",
+    "ConceptResponse",
 ]

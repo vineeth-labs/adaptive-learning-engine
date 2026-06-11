@@ -96,10 +96,14 @@ The complete PostgreSQL schema definition is maintained separately and can be fo
 ## 5. MVP API Endpoints
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/v1/users/{id}/map` | Returns the DAG with user mastery color-coding. |
-| `GET` | `/api/v1/recommendation/next` | Returns the next action (Assess, Review, or Teach). |
-| `POST` | `/api/v1/assessments/evaluate` | Submits user response to the async evaluation queue. |
-| `GET` | `/api/v1/assessments/status/{id}` | Polls for completion of the asynchronous LLM evaluation. |
+| `GET`  | `/api/v1/domains` | Get list of available domains. |
+| `GET`  | `/api/v1/domains/{domain_id}/concepts` | Get concepts in a domain. |
+| `GET`  | `/api/v1/domains/{domain_id}/graph` | Get concept graph. |
+| `GET`  | `/api/v1/users/{user_id}/competency-map` | Get user competency map. |
+| `GET`  | `/api/v1/users/{user_id}/recommendations/next` | Get the next recommendation for the user. |
+| `POST` | `/api/v1/assessments/generate` | Generates a new assessment for the user. |
+| `POST` | `/api/v1/assessments/{assessment_id}/submit` | Submits user response to the async evaluation queue. |
+| `GET`  | `/api/v1/assessments/{assessment_id}/results` | Returns the results of the assessment. |
 
 ---
 
@@ -123,6 +127,6 @@ The complete PostgreSQL schema definition is maintained separately and can be fo
     /learner          # BKT heuristic and FSRS mathematical logic
     /recommender      # Scoring and ranking heuristic algorithms
   /schemas            # Pydantic models for I/O and LLM Strict Parsing
-  /worker             # Celery background task definitions
+  /scripts            # Utility scripts
   main.py             # FastAPI application entrypoint
 

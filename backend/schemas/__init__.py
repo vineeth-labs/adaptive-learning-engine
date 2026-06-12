@@ -7,7 +7,7 @@ from .assessment import (
     TaskStatus,
     AssessmentStatusResponse,
 )
-from .domain import DomainResponse, ConceptResponse
+from .domain import DomainResponse, ConceptResponse, GraphNode, GraphEdge, DomainGraphResponse
 
 __all__ = [
     "ConceptNode",
@@ -23,4 +23,7 @@ __all__ = [
     "AssessmentStatusResponse",
     "DomainResponse",
     "ConceptResponse",
+    "GraphNode",
+    "GraphEdge",
+    "DomainGraphResponse",
 ]

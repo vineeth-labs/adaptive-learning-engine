@@ -54,7 +54,6 @@ The engine orchestrates the evaluation process using a dependency-aware "Frontie
 The platform's generative capabilities are decoupled into distinct, single-purpose agents to ensure reliability. All system outputs are strictly enforced using OpenAI's Structured Outputs with Pydantic models mapped to JSON Schemas.
 
 *   **Agent 1: Scenario Generator**: Receives a cluster of target concepts and generates a highly focused, open-ended technical question that weaves the concepts together naturally.
-
 *   **Agent 2: Diagnostic Evaluator**: Analyzes the user's free-text or code response against the target concepts. It outputs a strict schema containing the updated Mastery scores and any explicitly detected Misconceptions.
     
 

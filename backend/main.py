@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from backend.api.routes.domains import router as domains_router
+from backend.api.routes.users import router as users_router
 
 app = FastAPI(
     title="AI Competency Mapping API",
@@ -10,6 +11,7 @@ app = FastAPI(
 # Base API v1 router
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(domains_router)
+api_v1_router.include_router(users_router)
 
 # Mount API v1 router to the FastAPI application
 app.include_router(api_v1_router)

@@ -1,7 +1,42 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Any
 from uuid import UUID
+from datetime import datetime
 from enum import Enum
+
+# --- Assessment Generation (POST /api/v1/assessments/generate) ---
+
+# LLM Structured Output schema (Agent 1: Scenario Generator)
+class GeneratedQuestion(BaseModel):
+    question_text: str = Field(..., description="A single open-ended, free-text diagnostic question")
+
+class GeneratedQuestions(BaseModel):
+    questions: List[GeneratedQuestion]
+
+class AssessmentGenerateRequest(BaseModel):
+    user_id: UUID
+    concept_id: UUID
+    num_questions: Optional[int] = Field(
+        None, description="Override the configured default number of questions for this request"
+    )
+
+class AssessmentQuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    position: int
+    question_text: str
+
+class AssessmentGenerateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    assessment_id: UUID
+    user_id: UUID
+    concept_id: UUID
+    concept_name: str
+    status: str
+    questions: List[AssessmentQuestionOut]
+    created_at: datetime
 
 # Agent 1 Output Specification (GPT-4o)
 class ConceptEvaluation(BaseModel):

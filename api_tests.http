@@ -1,0 +1,14 @@
+//GET http://localhost:8000/api/v1/users/a79ae3f3-e6f0-4a3b-8f20-0acba3db76a1/competency-map
+
+###
+
+# Generate an assessment around a concept (uses mock questions when OPENAI_API_KEY is unset).
+# num_questions is optional; defaults to settings.NUM_QUESTIONS.
+POST http://localhost:8000/api/v1/assessments/generate
+Content-Type: application/json
+
+{
+  "user_id": "a79ae3f3-e6f0-4a3b-8f20-0acba3db76a1",
+  "concept_id": "b04c21a9-ffc4-4a3b-99b1-9d24886a201a",
+  "num_questions": 1
+}

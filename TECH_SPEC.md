@@ -87,6 +87,7 @@ The complete PostgreSQL schema definition is maintained separately and can be fo
 * `concept_relationships` (Cross-cutting DAG dependencies)
 * `learner_state` (Tracks mastery, confidence, retention, evidence count, and misconceptions)
 * `assessments` (The generated scenarios)
+* `assessment_questions` (The generated questions)
 * `assessment_results` (The Q-matrix multi-concept mapping)
 * `recommendations` (Audit log for engine decisions)
 

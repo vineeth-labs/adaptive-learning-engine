@@ -6,6 +6,11 @@ from .assessment import (
     AssessmentSubmissionResponse,
     TaskStatus,
     AssessmentStatusResponse,
+    GeneratedQuestion,
+    GeneratedQuestions,
+    AssessmentGenerateRequest,
+    AssessmentQuestionOut,
+    AssessmentGenerateResponse,
 )
 from .domain import DomainResponse, ConceptResponse, GraphNode, GraphEdge, DomainGraphResponse
 
@@ -21,6 +26,11 @@ __all__ = [
     "AssessmentSubmissionResponse",
     "TaskStatus",
     "AssessmentStatusResponse",
+    "GeneratedQuestion",
+    "GeneratedQuestions",
+    "AssessmentGenerateRequest",
+    "AssessmentQuestionOut",
+    "AssessmentGenerateResponse",
     "DomainResponse",
     "ConceptResponse",
     "GraphNode",

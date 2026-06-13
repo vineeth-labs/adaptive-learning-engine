@@ -49,14 +49,24 @@ CREATE TABLE IF NOT EXISTS learner_state (
     PRIMARY KEY (user_id, concept_id)
 );
 
--- 6. Assessments Table (The scenario generated)
+-- 6. Assessments Table (One assessment per target concept; questions live in a child table)
 CREATE TABLE IF NOT EXISTS assessments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    scenario_text TEXT NOT NULL,
-    user_response TEXT,
+    concept_id UUID REFERENCES concepts(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'generated',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 6b. Assessment Questions Table (One row per generated free-text question + its response)
+CREATE TABLE IF NOT EXISTS assessment_questions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    assessment_id UUID REFERENCES assessments(id) ON DELETE CASCADE,
+    position INT NOT NULL,
+    question_text TEXT NOT NULL,
+    user_response TEXT
+);
+CREATE INDEX IF NOT EXISTS assessment_questions_assessment_idx ON assessment_questions (assessment_id);
 
 -- 7. Assessment Results Table (The Q-matrix multi-concept mapping)
 CREATE TABLE IF NOT EXISTS assessment_results (

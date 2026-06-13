@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Seed script to populate Java curricula concepts and relationships from JSON.
+Seed script to populate Java curriculum concepts and relationships from YAML.
 """
 
 import argparse
@@ -8,21 +8,22 @@ import json
 import os
 import sys
 import psycopg2
+import yaml
 
-# Calculate the default JSON path relative to the script location
+# Calculate the default YAML path relative to the script location
 DEFAULT_JSON_PATH = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
-        "../backend/curricula/programming/java.json"
+        "../backend/curriculum/programming/java.yaml"
     )
 )
 
 def main():
-    parser = argparse.ArgumentParser(description="Populate domain, concepts, and concept relationships from a curriculum JSON file.")
+    parser = argparse.ArgumentParser(description="Populate domain, concepts, and concept relationships from a curriculum YAML file.")
     parser.add_argument(
         "--file", "-f",
         default=DEFAULT_JSON_PATH,
-        help=f"Path to the curriculum JSON file (default: {DEFAULT_JSON_PATH})"
+        help=f"Path to the curriculum YAML file (default: {DEFAULT_JSON_PATH})"
     )
     parser.add_argument(
         "--db-url", "-d",
@@ -51,9 +52,9 @@ def main():
         
     try:
         with open(json_path, "r") as f:
-            data = json.load(f)
+            data = yaml.safe_load(f)
     except Exception as e:
-        print(f"Error parsing JSON file: {e}", file=sys.stderr)
+        print(f"Error parsing YAML file: {e}", file=sys.stderr)
         sys.exit(1)
         
     concepts = data.get("concepts", [])

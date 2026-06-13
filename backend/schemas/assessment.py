@@ -73,3 +73,30 @@ class AssessmentStatusResponse(BaseModel):
     status: TaskStatus
     evaluations: Optional[List[ConceptEvaluation]] = None
     error: Optional[str] = None
+
+
+# --- Assessment Submission (POST /api/v1/assessments/{assessment_id}/submit) ---
+
+class QuestionResponse(BaseModel):
+    question_id: UUID
+    response_text: str
+
+class AssessmentSubmitRequest(BaseModel):
+    user_id: UUID
+    responses: List[QuestionResponse]
+
+# LLM Structured Output schema (Agent 2: Diagnostic Evaluator)
+class DiagnosticResult(BaseModel):
+    mastery_score: float = Field(..., ge=0.0, le=1.0,
+        description="0.0=no understanding, 1.0=expert-level")
+    evidence_quote: str = Field(...,
+        description="Verbatim excerpt from the user response supporting the score")
+    misconception: Optional[str] = Field(None,
+        description="Specific anti-pattern or error detected, or null if none")
+
+class AssessmentSubmitResponse(BaseModel):
+    assessment_id: UUID
+    status: str
+    mastery_score: float
+    misconception: Optional[str]
+    message: str

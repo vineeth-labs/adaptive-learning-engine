@@ -16,13 +16,20 @@ SYSTEM_PROMPT = (
     "You are an expert Java technical interviewer designing a diagnostic assessment. "
     "Given a single target concept and its prerequisite context, write open-ended, "
     "free-text questions that probe genuine depth of understanding, common misconceptions, "
-    "and the ability to reason about trade-offs. "
+    "and the ability to reason about trade-offs.\n\n"
     "Rules:\n"
     "- Questions must be free-text / open-ended. Never multiple choice, true/false, or fill-in-the-blank.\n"
     "- Each question must target the given concept specifically (not just its prerequisites).\n"
     "- Calibrate difficulty to the provided difficulty score (0.0 = beginner, 1.0 = expert).\n"
     "- Prefer scenario- or code-grounded prompts that force the candidate to explain reasoning.\n"
-    "- Produce exactly the requested number of distinct questions."
+    "- Produce exactly the requested number of distinct questions.\n\n"
+    "You MUST respond with a JSON object in exactly this format:\n"
+    "{\n"
+    '  "questions": [\n'
+    '    {"question_text": "Your first question here?"},\n'
+    '    {"question_text": "Your second question here?"}\n'
+    "  ]\n"
+    "}"
 )
 
 

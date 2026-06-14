@@ -12,16 +12,17 @@ class Settings(BaseSettings):
     # inherit these when left blank).
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
+    DEEPSEEK_API_KEY: str = ""   # loaded from .env; used as the deepseek-provider default
 
     # --- Scenario Generator (Agent 1) ---
     # Provider: openai | deepseek | gemini
     SCENARIO_LLM_PROVIDER: str = "deepseek"
-    SCENARIO_LLM_API_KEY: str = "sk-fea347ce9ca14f399d32bb80a18ff4cb"   # falls back to OPENAI_API_KEY if blank
+    SCENARIO_LLM_API_KEY: str = ""   # falls back to the provider's key if blank
     SCENARIO_LLM_MODEL: str = "deepseek-chat"     # falls back to OPENAI_MODEL if blank
 
     # --- Diagnostic Evaluator (Agent 2) ---
     EVALUATOR_LLM_PROVIDER: str = "deepseek"
-    EVALUATOR_LLM_API_KEY: str = "sk-fea347ce9ca14f399d32bb80a18ff4cb"  # falls back to OPENAI_API_KEY if blank
+    EVALUATOR_LLM_API_KEY: str = ""  # falls back to the provider's key if blank
     EVALUATOR_LLM_MODEL: str = "deepseek-chat"    # falls back to OPENAI_MODEL if blank
 
     # Number of free-text questions generated per assessment (default 1 for MVP)
@@ -46,14 +47,18 @@ class Settings(BaseSettings):
             return v.replace("postgresql://", "postgresql+asyncpg://", 1)
         return v
 
+    def _default_key_for(self, provider: str) -> str:
+        # Resolve a blank per-service key to the matching global key for its provider.
+        return self.DEEPSEEK_API_KEY if provider == "deepseek" else self.OPENAI_API_KEY
+
     @model_validator(mode="after")
     def _apply_global_llm_fallbacks(self) -> "Settings":
         if not self.SCENARIO_LLM_API_KEY:
-            self.SCENARIO_LLM_API_KEY = self.OPENAI_API_KEY
+            self.SCENARIO_LLM_API_KEY = self._default_key_for(self.SCENARIO_LLM_PROVIDER)
         if not self.SCENARIO_LLM_MODEL:
             self.SCENARIO_LLM_MODEL = self.OPENAI_MODEL
         if not self.EVALUATOR_LLM_API_KEY:
-            self.EVALUATOR_LLM_API_KEY = self.OPENAI_API_KEY
+            self.EVALUATOR_LLM_API_KEY = self._default_key_for(self.EVALUATOR_LLM_PROVIDER)
         if not self.EVALUATOR_LLM_MODEL:
             self.EVALUATOR_LLM_MODEL = self.OPENAI_MODEL
         return self

@@ -102,17 +102,24 @@ async def apply_diagnostic_result(
         state = LearnerState(user_id=user_id, concept_id=concept_id, mastery=0.0, evidence_count=0)
         db.add(state)
 
-    # Prior: continue the existing trajectory, or cold-start from the prereq gate.
-    if state.evidence_count and state.evidence_count > 0:
-        belief = state.mastery
+    old_mastery = state.mastery or 0.0
+    prior_count = state.evidence_count or 0
+
+    # BKT belief (grade-based) is retained for a future version but no longer drives
+    # the persisted mastery. Prior: continue the existing trajectory, or cold-start
+    # from the prereq gate.
+    if prior_count > 0:
+        belief = old_mastery
     else:
         belief = await _prerequisite_gated_prior(user_id, concept_id, db)
-
     for qg in result.question_grades:
         belief = bkt.bkt_update_graded(belief, Grade[qg.grade], _PARAMS)
 
-    state.mastery = belief
-    state.evidence_count = (state.evidence_count or 0) + len(result.question_grades)
+    # Simple running-average update from the evaluator's holistic answer_quality.
+    # This submission counts as a single new piece of evidence.
+    new_mastery = (old_mastery * prior_count + result.answer_quality) / (prior_count + 1)
+    state.mastery = new_mastery
+    state.evidence_count = prior_count + 1
 
     # Collect misconceptions from this submission (per-question + overall), dedup
     # against what's already recorded.
@@ -127,4 +134,4 @@ async def apply_diagnostic_result(
         state.misconceptions = existing
 
     state.last_interaction_at = datetime.now(timezone.utc)
-    return belief
+    return new_mastery

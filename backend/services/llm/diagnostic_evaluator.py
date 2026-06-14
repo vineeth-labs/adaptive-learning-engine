@@ -13,10 +13,9 @@ from backend.schemas import DiagnosticResult, QuestionGrade
 from .client import make_llm_client
 
 SYSTEM_PROMPT = (
-    "You are an expert Java technical evaluator feeding a Bayesian Knowledge Tracing engine. "
+    "You are an expert Java technical evaluator. "
     "Given a target concept, its prerequisite context, and the candidate's responses to diagnostic "
-    "questions, grade EACH question independently. Do not output a numeric mastery score — the "
-    "downstream engine computes mastery from your discrete grades.\n\n"
+    "questions, grade EACH question independently.\n\n"
     "For every question, return one entry in question_grades with:\n"
     "- position: the 1-based question number exactly as given.\n"
     "- grade: one of CORRECT (clearly demonstrates correct understanding), PARTIAL (partially correct, "
@@ -26,6 +25,9 @@ SYSTEM_PROMPT = (
     "- misconception: if that answer reveals a specific anti-pattern or foundational error, describe it "
     "precisely (e.g. 'Believes synchronized blocks prevent all visibility issues without volatile'); "
     "otherwise null.\n"
+    "Also return a top-level answer_quality: a single float from 0.0 to 1.0 summarizing the overall "
+    "quality of the candidate's understanding across all answers, where 0.0 means no understanding and "
+    "1.0 means full mastery of the target concept.\n"
     "Also return a top-level misconception: the single most significant misconception across all "
     "answers, or null if none.\n"
     "Grade strictly on what the candidate wrote — do not infer unstated knowledge.\n\n"
@@ -39,6 +41,7 @@ SYSTEM_PROMPT = (
     '      "misconception": null\n'
     '    }\n'
     '  ],\n'
+    '  "answer_quality": 0.0,\n'
     '  "misconception": null\n'
     "}"
 )
@@ -82,6 +85,7 @@ def _mock_result(num_questions: int) -> DiagnosticResult:
             )
             for i in range(1, max(1, num_questions) + 1)
         ],
+        answer_quality=0.5,
         misconception=None,
     )
 

@@ -103,6 +103,8 @@ class QuestionGrade(BaseModel):
 class DiagnosticResult(BaseModel):
     question_grades: List[QuestionGrade] = Field(...,
         description="One grade per question, in order")
+    answer_quality: float = Field(..., ge=0.0, le=1.0,
+        description="Holistic quality of the candidate's responses, 0.0 (no understanding) to 1.0 (full mastery)")
     misconception: Optional[str] = Field(None,
         description="Overall/most significant misconception across the responses, or null if none")
 

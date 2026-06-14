@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     BKT_P_GUESS: float = 0.20     # P(G): chance of answering right despite not knowing it
     BKT_BASE_PRIOR: float = 0.30  # P(L0): prior mastery for a root concept before any evidence
 
+    # Recommendation engine
+    RECOMMEND_MASTERY_THRESHOLD: float = 0.7  # mastery at/above which a concept counts as "mastered"
+    ROADMAP_MAX_STEPS: int = 10               # max concepts in the previewed learning roadmap
+
     @field_validator("DATABASE_URL")
     @classmethod
     def _force_async_driver(cls, v: str) -> str:

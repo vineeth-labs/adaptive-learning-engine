@@ -9,7 +9,7 @@ turns it into an updated belief over the learner's mastery.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -56,3 +56,13 @@ class Grade(Enum):
     CORRECT = 1.0
     PARTIAL = 0.5
     INCORRECT = 0.0
+
+
+@dataclass
+class GapReport:
+    """A snapshot of the learner's competency, bucketed for presentation."""
+
+    mastered: list[str] = field(default_factory=list)
+    shaky: list[str] = field(default_factory=list)
+    not_learned: list[str] = field(default_factory=list)
+    recommended_next: str | None = None

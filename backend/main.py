@@ -7,6 +7,7 @@ from sqlalchemy import text
 from backend.api.routes.domains import router as domains_router
 from backend.api.routes.users import router as users_router
 from backend.api.routes.assessments import router as assessments_router
+from backend.api.routes.recommendations import router as recommendations_router
 from backend.db.session import engine
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(domains_router)
 api_v1_router.include_router(users_router)
 api_v1_router.include_router(assessments_router)
+api_v1_router.include_router(recommendations_router)
 
 # Mount API v1 router to the FastAPI application
 app.include_router(api_v1_router)

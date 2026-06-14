@@ -10,6 +10,7 @@ from typing import List, Tuple
 
 from backend.core.config import settings
 from backend.schemas import DiagnosticResult, QuestionGrade
+from .client import make_llm_client
 
 SYSTEM_PROMPT = (
     "You are an expert Java technical evaluator feeding a Bayesian Knowledge Tracing engine. "
@@ -79,23 +80,22 @@ async def evaluate_response(
     qa_pairs: List[Tuple[str, str]],
 ) -> DiagnosticResult:
     """Return a DiagnosticResult for the user's responses to the given concept's questions."""
-    if not settings.OPENAI_API_KEY:
+    if not settings.EVALUATOR_LLM_API_KEY:
         return _mock_result(len(qa_pairs))
 
-    from openai import AsyncOpenAI
     from backend.services.llm.scenario_generator import LLMGenerationError
 
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    client = make_llm_client(settings.EVALUATOR_LLM_PROVIDER, settings.EVALUATOR_LLM_API_KEY)
     try:
-        completion = await client.beta.chat.completions.parse(
-            model=settings.OPENAI_MODEL,
+        completion = await client.chat.completions.create(
+            model=settings.EVALUATOR_LLM_MODEL,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": _build_user_prompt(concept, prerequisite_names, qa_pairs)},
             ],
-            response_format=DiagnosticResult,
+            response_format={"type": "json_object"},
         )
-        parsed = completion.choices[0].message.parsed
+        parsed = DiagnosticResult.model_validate_json(completion.choices[0].message.content)
     except Exception as exc:
         raise LLMGenerationError(str(exc)) from exc
 

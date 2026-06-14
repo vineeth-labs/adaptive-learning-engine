@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,9 +8,21 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
 
-    # LLM / OpenAI configuration
+    # Global LLM fallbacks (kept for backward compat — per-service fields below
+    # inherit these when left blank).
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
+
+    # --- Scenario Generator (Agent 1) ---
+    # Provider: openai | deepseek | gemini
+    SCENARIO_LLM_PROVIDER: str = "deepseek"
+    SCENARIO_LLM_API_KEY: str = "sk-fea347ce9ca14f399d32bb80a18ff4cb"   # falls back to OPENAI_API_KEY if blank
+    SCENARIO_LLM_MODEL: str = "deepseek-chat"     # falls back to OPENAI_MODEL if blank
+
+    # --- Diagnostic Evaluator (Agent 2) ---
+    EVALUATOR_LLM_PROVIDER: str = "deepseek"
+    EVALUATOR_LLM_API_KEY: str = "sk-fea347ce9ca14f399d32bb80a18ff4cb"  # falls back to OPENAI_API_KEY if blank
+    EVALUATOR_LLM_MODEL: str = "deepseek-chat"    # falls back to OPENAI_MODEL if blank
 
     # Number of free-text questions generated per assessment (default 1 for MVP)
     NUM_QUESTIONS: int = 1
@@ -29,6 +41,18 @@ class Settings(BaseSettings):
         if v.startswith("postgresql://"):
             return v.replace("postgresql://", "postgresql+asyncpg://", 1)
         return v
+
+    @model_validator(mode="after")
+    def _apply_global_llm_fallbacks(self) -> "Settings":
+        if not self.SCENARIO_LLM_API_KEY:
+            self.SCENARIO_LLM_API_KEY = self.OPENAI_API_KEY
+        if not self.SCENARIO_LLM_MODEL:
+            self.SCENARIO_LLM_MODEL = self.OPENAI_MODEL
+        if not self.EVALUATOR_LLM_API_KEY:
+            self.EVALUATOR_LLM_API_KEY = self.OPENAI_API_KEY
+        if not self.EVALUATOR_LLM_MODEL:
+            self.EVALUATOR_LLM_MODEL = self.OPENAI_MODEL
+        return self
 
 
 settings = Settings()

@@ -10,6 +10,7 @@ from typing import List
 
 from backend.core.config import settings
 from backend.schemas import GeneratedQuestions
+from .client import make_llm_client
 
 SYSTEM_PROMPT = (
     "You are an expert Java technical interviewer designing a diagnostic assessment. "
@@ -52,28 +53,24 @@ def _mock_questions(concept, num_questions: int) -> List[str]:
 
 async def generate_questions(concept, prerequisite_names: List[str], num_questions: int) -> List[str]:
     """Return a list of question strings for the given concept."""
-    # No real key configured -> deterministic mock (keeps MVP runnable offline).
-    if not settings.OPENAI_API_KEY:
+    if not settings.SCENARIO_LLM_API_KEY:
         return _mock_questions(concept, num_questions)
 
-    # Imported lazily so the package isn't required when running purely on the mock path.
-    from openai import AsyncOpenAI
-
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    client = make_llm_client(settings.SCENARIO_LLM_PROVIDER, settings.SCENARIO_LLM_API_KEY)
     try:
-        completion = await client.beta.chat.completions.parse(
-            model=settings.OPENAI_MODEL,
+        completion = await client.chat.completions.create(
+            model=settings.SCENARIO_LLM_MODEL,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": _build_user_prompt(concept, prerequisite_names, num_questions)},
             ],
-            response_format=GeneratedQuestions,
+            response_format={"type": "json_object"},
         )
-        parsed = completion.choices[0].message.parsed
-    except Exception as exc:  # noqa: BLE001 - surface any OpenAI/parse failure uniformly
+        parsed = GeneratedQuestions.model_validate_json(completion.choices[0].message.content)
+    except Exception as exc:
         raise LLMGenerationError(str(exc)) from exc
 
-    if not parsed or not parsed.questions:
+    if not parsed.questions:
         raise LLMGenerationError("LLM returned no questions")
 
     return [q.question_text for q in parsed.questions]

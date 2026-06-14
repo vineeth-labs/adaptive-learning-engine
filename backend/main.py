@@ -1,12 +1,35 @@
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, APIRouter
+from sqlalchemy import text
+
 from backend.api.routes.domains import router as domains_router
 from backend.api.routes.users import router as users_router
 from backend.api.routes.assessments import router as assessments_router
+from backend.db.session import engine
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        logger.info("Database connection OK")
+    except Exception as exc:
+        logger.error(
+            "Cannot reach the database at startup — is PostgreSQL running? (%s)", exc
+        )
+    yield
+
 
 app = FastAPI(
     title="AI Competency Mapping API",
     description="Backend API for managing competency mapping, learner state, and assessments.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Base API v1 router

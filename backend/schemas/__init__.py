@@ -13,6 +13,7 @@ from .assessment import (
     AssessmentGenerateResponse,
     QuestionResponse,
     AssessmentSubmitRequest,
+    QuestionGrade,
     DiagnosticResult,
     AssessmentSubmitResponse,
 )
@@ -37,6 +38,7 @@ __all__ = [
     "AssessmentGenerateResponse",
     "QuestionResponse",
     "AssessmentSubmitRequest",
+    "QuestionGrade",
     "DiagnosticResult",
     "AssessmentSubmitResponse",
     "DomainResponse",

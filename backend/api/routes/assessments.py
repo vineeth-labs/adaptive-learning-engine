@@ -135,15 +135,19 @@ async def submit_assessment(
     except LLMGenerationError as exc:
         raise HTTPException(status_code=502, detail=f"Evaluation failed: {exc}")
 
-    # Stub: will apply mastery updates to LearnerState once implemented.
-    await apply_diagnostic_result(req.user_id, assessment.concept_id, result, db)
+    # Apply the per-question grades to the learner's BKT mastery belief.
+    # The returned belief is the principled mastery score (not an LLM float).
+    mastery = await apply_diagnostic_result(req.user_id, assessment.concept_id, result, db)
 
-    # Persist the evaluation result.
+    # Persist the evaluation result. Join the per-question evidence quotes.
+    evidence_quote = " | ".join(
+        qg.evidence_quote for qg in result.question_grades if qg.evidence_quote
+    )
     db.add(AssessmentResult(
         assessment_id=assessment_id,
         concept_id=assessment.concept_id,
-        score_awarded=result.mastery_score,
-        evidence_quote=result.evidence_quote,
+        score_awarded=mastery,
+        evidence_quote=evidence_quote,
     ))
     assessment.status = "evaluated"
     await db.commit()
@@ -151,7 +155,7 @@ async def submit_assessment(
     return AssessmentSubmitResponse(
         assessment_id=assessment_id,
         status="evaluated",
-        mastery_score=result.mastery_score,
+        mastery_score=mastery,
         misconception=result.misconception,
         message="Assessment submitted and evaluated successfully.",
     )

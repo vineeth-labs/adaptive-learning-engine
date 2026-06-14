@@ -9,19 +9,25 @@ configured; otherwise falls back to a deterministic mock.
 from typing import List, Tuple
 
 from backend.core.config import settings
-from backend.schemas import DiagnosticResult
+from backend.schemas import DiagnosticResult, QuestionGrade
 
 SYSTEM_PROMPT = (
-    "You are an expert Java technical evaluator. "
-    "Given a target concept, its prerequisite context, and the candidate's responses "
-    "to diagnostic questions, score their understanding.\n"
-    "Rules:\n"
-    "- mastery_score: 0.0 (no understanding whatsoever) to 1.0 (expert-level mastery).\n"
-    "- evidence_quote: copy a verbatim phrase from the responses that best justifies the score.\n"
-    "- misconception: if there is a specific anti-pattern or foundational error, describe it "
+    "You are an expert Java technical evaluator feeding a Bayesian Knowledge Tracing engine. "
+    "Given a target concept, its prerequisite context, and the candidate's responses to diagnostic "
+    "questions, grade EACH question independently. Do not output a numeric mastery score — the "
+    "downstream engine computes mastery from your discrete grades.\n"
+    "For every question, return one entry in question_grades with:\n"
+    "- position: the 1-based question number exactly as given.\n"
+    "- grade: one of CORRECT (clearly demonstrates correct understanding), PARTIAL (partially correct, "
+    "incomplete, or correct but with a flaw), or INCORRECT (wrong, irrelevant, or no response).\n"
+    "- evidence_quote: copy a verbatim phrase from THAT answer that best justifies the grade "
+    "(empty string if the candidate wrote nothing).\n"
+    "- misconception: if that answer reveals a specific anti-pattern or foundational error, describe it "
     "precisely (e.g. 'Believes synchronized blocks prevent all visibility issues without volatile'); "
-    "otherwise return null.\n"
-    "Base your score strictly on what the candidate wrote — do not infer unstated knowledge."
+    "otherwise null.\n"
+    "Also return a top-level misconception: the single most significant misconception across all "
+    "answers, or null if none.\n"
+    "Grade strictly on what the candidate wrote — do not infer unstated knowledge."
 )
 
 
@@ -44,14 +50,25 @@ def _build_user_prompt(
         lines.append(f"Q{i}: {question}")
         lines.append(f"A{i}: {answer or '[no response provided]'}")
     lines.append("")
-    lines.append(f'Evaluate the candidate\'s understanding of "{concept.name}".')
+    lines.append(
+        f'Grade each answer for the candidate\'s understanding of "{concept.name}", '
+        "one question_grades entry per question above."
+    )
     return "\n".join(lines)
 
 
-def _mock_result() -> DiagnosticResult:
+def _mock_result(num_questions: int) -> DiagnosticResult:
+    """Deterministic offline fallback: one PARTIAL grade per question."""
     return DiagnosticResult(
-        mastery_score=0.5,
-        evidence_quote="[MOCK] No real evaluation — API key not set.",
+        question_grades=[
+            QuestionGrade(
+                position=i,
+                grade="PARTIAL",
+                evidence_quote="[MOCK] No real evaluation — API key not set.",
+                misconception=None,
+            )
+            for i in range(1, max(1, num_questions) + 1)
+        ],
         misconception=None,
     )
 
@@ -63,7 +80,7 @@ async def evaluate_response(
 ) -> DiagnosticResult:
     """Return a DiagnosticResult for the user's responses to the given concept's questions."""
     if not settings.OPENAI_API_KEY:
-        return _mock_result()
+        return _mock_result(len(qa_pairs))
 
     from openai import AsyncOpenAI
     from backend.services.llm.scenario_generator import LLMGenerationError

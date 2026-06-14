@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Literal
 from uuid import UUID
 from datetime import datetime
 from enum import Enum
@@ -86,13 +86,25 @@ class AssessmentSubmitRequest(BaseModel):
     responses: List[QuestionResponse]
 
 # LLM Structured Output schema (Agent 2: Diagnostic Evaluator)
-class DiagnosticResult(BaseModel):
-    mastery_score: float = Field(..., ge=0.0, le=1.0,
-        description="0.0=no understanding, 1.0=expert-level")
+#
+# The evaluator grades EACH question into a three-way Grade enum (the signal the
+# Bayesian Knowledge Tracing engine consumes), rather than emitting a single
+# holistic float. Each QuestionGrade becomes one BKT observation; the learner's
+# mastery belief is then computed by the BKT update, not by the LLM directly.
+class QuestionGrade(BaseModel):
+    position: int = Field(..., description="1-based position of the question being graded")
+    grade: Literal["CORRECT", "PARTIAL", "INCORRECT"] = Field(...,
+        description="CORRECT=demonstrates understanding, PARTIAL=partial/flawed, INCORRECT=wrong or absent")
     evidence_quote: str = Field(...,
-        description="Verbatim excerpt from the user response supporting the score")
+        description="Verbatim excerpt from this answer that justifies the grade")
     misconception: Optional[str] = Field(None,
-        description="Specific anti-pattern or error detected, or null if none")
+        description="Specific anti-pattern or error revealed by this answer, or null if none")
+
+class DiagnosticResult(BaseModel):
+    question_grades: List[QuestionGrade] = Field(...,
+        description="One grade per question, in order")
+    misconception: Optional[str] = Field(None,
+        description="Overall/most significant misconception across the responses, or null if none")
 
 class AssessmentSubmitResponse(BaseModel):
     assessment_id: UUID

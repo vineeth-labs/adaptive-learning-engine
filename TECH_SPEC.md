@@ -35,8 +35,8 @@ The mathematical representation of the user's cognitive state is decoupled from 
 
 *   **State Vector Variables** (Stored per concept):
 
-    1.  **Mastery (M)**: A continuous score from 0.0 to 1.0 representing understanding. This is updated using a weighted moving average when new evaluations occur.
-    2.  **Evidence Count (E)**: An integer representing the number of times the user has been evaluated on a specific concept. This dictates the system's confidence in the current Mastery score.
+    1.  **Mastery (M)**: A continuous score from 0.0 to 1.0 representing the belief `P(known)`. It is updated with **graph-aware Bayesian Knowledge Tracing** (slip/guess/learn-rate parameters): the Diagnostic Evaluator grades each question into a discrete `CORRECT`/`PARTIAL`/`INCORRECT` signal, and each grade is one BKT observation applied via a soft-evidence update (`backend/services/learner/`). A concept with no direct evidence starts from a **prerequisite-gated prior** (`base_prior × mean(prereq masteries)`), so advanced concepts stay low until their prerequisites look solid. BKT parameters are global constants (`BKT_*` settings) for the MVP.
+    2.  **Evidence Count (E)**: An integer counting how many graded observations the user has accumulated for a concept (incremented once per graded question). This dictates the system's confidence in the current Mastery score and whether the belief continues an existing trajectory or cold-starts from the prereq-gated prior.
     3.  **Misconceptions**: A JSON array of explicit anti-patterns, foundational errors, or critical flaws extracted by the LLM (e.g., "Believes wait() does not require holding a monitor lock"). The presence of data here flags the concept for immediate remediation.
         
 

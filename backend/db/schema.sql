@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS learner_state (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     concept_id UUID REFERENCES concepts(id) ON DELETE CASCADE,
     mastery FLOAT DEFAULT 0.0 CHECK (mastery >= 0 AND mastery <= 1),
+    -- Beta(alpha, beta) posterior backing the mastery belief. mastery is the
+    -- posterior mean (alpha / (alpha + beta)), recomputed on every update.
+    -- Nullable: populated in code on the first write (cold-start prior).
+    alpha FLOAT,
+    beta FLOAT,
     evidence_count INT DEFAULT 0,
     misconceptions JSONB DEFAULT '[]'::jsonb,
     last_interaction_at TIMESTAMP WITH TIME ZONE,

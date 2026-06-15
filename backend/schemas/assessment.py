@@ -95,6 +95,9 @@ class QuestionGrade(BaseModel):
     position: int = Field(..., description="1-based position of the question being graded")
     grade: Literal["CORRECT", "PARTIAL", "INCORRECT"] = Field(...,
         description="CORRECT=demonstrates understanding, PARTIAL=partial/flawed, INCORRECT=wrong or absent")
+    answer_score: float = Field(..., ge=0.0, le=1.0,
+        description="Continuous quality of THIS answer, 0.0 (wrong/absent) to 1.0 (perfect), partial in "
+                    "between. Drives the Beta mastery update — one observation per question.")
     evidence_quote: str = Field(...,
         description="Verbatim excerpt from this answer that justifies the grade")
     misconception: Optional[str] = Field(None,

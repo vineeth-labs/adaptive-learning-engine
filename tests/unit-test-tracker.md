@@ -96,30 +96,30 @@ No DB, no LLM, no network required for any test in this section — all packages
 
 | # | Test | What it covers | Done |
 |---|------|----------------|------|
-| 1 | `test_cold_start_root_gets_base_prior` | Root concept belief == `params.base_prior` on init | [ ] |
-| 2 | `test_cold_start_downstream_gated_prior` | Non-root concept belief == `base_prior * mean(prereq beliefs)` | [ ] |
-| 3 | `test_observe_correct_raises_belief` | `observe(concept, True)` → mastery increases | [ ] |
-| 4 | `test_observe_incorrect_lowers_belief` | `observe(concept, False)` → mastery decreases | [ ] |
-| 5 | `test_observe_propagates_to_downstream_prior` | Observing a prereq updates the prior of its dependents | [ ] |
-| 6 | `test_observe_unknown_concept_raises` | `observe` on an unknown concept id raises `KeyError` | [ ] |
-| 7 | `test_from_state_loads_mastery` | `from_state` sets belief for known concepts | [ ] |
-| 8 | `test_from_state_unknown_keeps_dynamic_prior` | Unloaded concepts retain prerequisite-gated prior | [ ] |
-| 9 | `test_from_state_invalid_mastery_raises` | Mastery outside [0,1] raises `ValueError` | [ ] |
-| 10 | `test_from_events_matches_observe` | `from_events` replay produces same belief as sequential `observe` calls | [ ] |
-| 11 | `test_select_next_excludes_blocked` | Concept with unmastered prereq not returned by `select_next` | [ ] |
-| 12 | `test_select_next_prefers_uncertain` | Among candidates, most uncertain concept (entropy closest to 0.5) is chosen | [ ] |
-| 13 | `test_select_next_returns_none_when_done` | Returns `None` when all reachable concepts are mastered | [ ] |
-| 14 | `test_select_next_undersampled_floor` | Concept asked fewer than `min_questions` times is always a candidate | [ ] |
-| 15 | `test_recommend_next_to_study_scores_leverage` | Picks concept with highest `(1 - mastery) * (1 + unblocked_downstream)` | [ ] |
-| 16 | `test_recommend_next_to_study_ready_prereqs_only` | Only considers concepts whose prereqs meet the threshold | [ ] |
-| 17 | `test_recommend_next_to_study_none_when_all_mastered` | Returns `None` when everything reachable is mastered | [ ] |
-| 18 | `test_gap_report_buckets` | Concepts bucketed correctly into mastered / shaky / not_learned | [ ] |
-| 19 | `test_gap_report_recommended_next` | `recommended_next` matches `recommend_next_to_study()` | [ ] |
-| 20 | `test_preview_path_nonempty_cold_start` | Returns a non-empty path from a cold-start state | [ ] |
-| 21 | `test_preview_path_distinct_concepts` | All concepts in preview path are distinct | [ ] |
-| 22 | `test_preview_path_max_steps` | Path length never exceeds `max_steps` | [ ] |
-| 23 | `test_recommend_path_first_matches_recommend_next` | First element of `recommend_path` == `recommend_next_to_study()` | [ ] |
-| 24 | `test_preview_path_does_not_mutate_tracer` | Calling `preview_path` does not change the tracer's belief state | [ ] |
+| 1 | `test_cold_start_root_gets_base_prior` | Root concept belief == `params.base_prior` on init | [x] |
+| 2 | `test_cold_start_downstream_gated_prior` | Non-root concept belief == `base_prior * mean(prereq beliefs)` | [x] |
+| 3 | `test_observe_correct_raises_belief` | `observe(concept, True)` → mastery increases | [x] |
+| 4 | `test_observe_incorrect_lowers_belief` | `observe(concept, False)` → mastery decreases | [x] |
+| 5 | `test_observe_propagates_to_downstream_prior` | Observing a prereq updates the prior of its dependents | [x] |
+| 6 | `test_observe_unknown_concept_raises` | `observe` on an unknown concept id raises `KeyError` | [x] |
+| 7 | `test_from_state_loads_mastery` | `from_state` sets belief for known concepts | [x] |
+| 8 | `test_from_state_unknown_keeps_dynamic_prior` | Unloaded concepts retain prerequisite-gated prior | [x] |
+| 9 | `test_from_state_invalid_mastery_raises` | Mastery outside [0,1] raises `ValueError` | [x] |
+| 10 | `test_from_events_matches_observe` | `from_events` replay produces same belief as sequential `observe` calls | [x] |
+| 11 | `test_select_next_excludes_blocked` | Concept with unmastered prereq not returned by `select_next` | [x] |
+| 12 | `test_select_next_prefers_uncertain` | Among candidates, most uncertain concept (entropy closest to 0.5) is chosen | [x] |
+| 13 | `test_select_next_returns_none_when_done` | Returns `None` when all reachable concepts are mastered | [x] |
+| 14 | `test_select_next_undersampled_floor` | Concept asked fewer than `min_questions` times is always a candidate | [x] |
+| 15 | `test_recommend_next_to_study_scores_leverage` | Picks concept with highest `(1 - mastery) * (1 + unblocked_downstream)` | [x] |
+| 16 | `test_recommend_next_to_study_ready_prereqs_only` | Only considers concepts whose prereqs meet the threshold | [x] |
+| 17 | `test_recommend_next_to_study_none_when_all_mastered` | Returns `None` when everything reachable is mastered | [x] |
+| 18 | `test_gap_report_buckets` | Concepts bucketed correctly into mastered / shaky / not_learned | [x] |
+| 19 | `test_gap_report_recommended_next` | `recommended_next` matches `recommend_next_to_study()` | [x] |
+| 20 | `test_preview_path_nonempty_cold_start` | Returns a non-empty path from a cold-start state | [x] |
+| 21 | `test_preview_path_distinct_concepts` | All concepts in preview path are distinct | [x] |
+| 22 | `test_preview_path_max_steps` | Path length never exceeds `max_steps` | [x] |
+| 23 | `test_recommend_path_first_matches_recommend_next` | First element of `recommend_path` == `recommend_next_to_study()` | [x] |
+| 24 | `test_preview_path_does_not_mutate_tracer` | Calling `preview_path` does not change the tracer's belief state | [x] |
 
 ---
 
@@ -130,13 +130,13 @@ No DB, no LLM, no network required for any test in this section — all packages
 
 | # | Test | What it covers | Done |
 |---|------|----------------|------|
-| 1 | `test_bkt_params_defaults_valid` | Default `BKTParams()` passes validation | [ ] |
-| 2 | `test_bkt_params_zero_raises` | Any param == 0.0 raises `ValueError` | [ ] |
-| 3 | `test_bkt_params_one_raises` | Any param == 1.0 raises `ValueError` | [ ] |
-| 4 | `test_bkt_params_identifiability` | `p_slip + p_guess >= 1.0` raises `ValueError` | [ ] |
-| 5 | `test_grade_correct_value` | `Grade.CORRECT.value` == 1.0 | [ ] |
-| 6 | `test_grade_partial_value` | `Grade.PARTIAL.value` == 0.5 | [ ] |
-| 7 | `test_grade_incorrect_value` | `Grade.INCORRECT.value` == 0.0 | [ ] |
+| 1 | `test_bkt_params_defaults_valid` | Default `BKTParams()` passes validation | [x] |
+| 2 | `test_bkt_params_zero_raises` | Any param == 0.0 raises `ValueError` | [x] |
+| 3 | `test_bkt_params_one_raises` | Any param == 1.0 raises `ValueError` | [x] |
+| 4 | `test_bkt_params_identifiability` | `p_slip + p_guess >= 1.0` raises `ValueError` | [x] |
+| 5 | `test_grade_correct_value` | `Grade.CORRECT.value` == 1.0 | [x] |
+| 6 | `test_grade_partial_value` | `Grade.PARTIAL.value` == 0.5 | [x] |
+| 7 | `test_grade_incorrect_value` | `Grade.INCORRECT.value` == 0.0 | [x] |
 
 ---
 
@@ -147,14 +147,14 @@ No DB, no LLM, no network required for any test in this section — all packages
 
 | # | Test | What it covers | Done |
 |---|------|----------------|------|
-| 1 | `test_action_type_enum_values` | `ActionType` has ASSESS, REVIEW, TEACH values | [ ] |
-| 2 | `test_action_type_invalid_raises` | Unknown string raises `ValidationError` | [ ] |
-| 3 | `test_recommendation_response_valid` | `RecommendationResponse` round-trips with valid data | [ ] |
-| 4 | `test_diagnostic_result_valid` | `DiagnosticResult` round-trips with valid question grades | [ ] |
-| 5 | `test_question_grade_score_bounds` | `answer_score` outside [0, 1] raises `ValidationError` (if validated) | [ ] |
-| 6 | `test_generated_questions_nonempty` | `GeneratedQuestions` requires at least one question | [ ] |
-| 7 | `test_domain_response_valid` | `DomainResponse` round-trips with name and id | [ ] |
-| 8 | `test_concept_node_mastery_default` | `ConceptNode` defaults mastery to 0.0 when not provided | [ ] |
+| 1 | `test_action_type_enum_values` | `ActionType` has ASSESS, REVIEW, TEACH values | [x] |
+| 2 | `test_action_type_invalid_raises` | Unknown string raises `ValidationError` | [x] |
+| 3 | `test_recommendation_response_valid` | `RecommendationResponse` round-trips with valid data | [x] |
+| 4 | `test_diagnostic_result_valid` | `DiagnosticResult` round-trips with valid question grades | [x] |
+| 5 | `test_question_grade_score_bounds` | `answer_score` outside [0, 1] raises `ValidationError` (if validated) | [x] |
+| 6 | `test_generated_questions_nonempty` | `GeneratedQuestions` requires at least one question | [x] |
+| 7 | `test_domain_response_valid` | `DomainResponse` round-trips with name and id | [x] |
+| 8 | `test_concept_node_mastery_default` | `ConceptNode` defaults mastery to 0.0 when not provided | [x] |
 
 ---
 

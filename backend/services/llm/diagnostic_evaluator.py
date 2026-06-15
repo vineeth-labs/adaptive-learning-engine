@@ -20,6 +20,9 @@ SYSTEM_PROMPT = (
     "- position: the 1-based question number exactly as given.\n"
     "- grade: one of CORRECT (clearly demonstrates correct understanding), PARTIAL (partially correct, "
     "incomplete, or correct but with a flaw), or INCORRECT (wrong, irrelevant, or no response).\n"
+    "- answer_score: a single float from 0.0 to 1.0 scoring THAT answer's quality, where 0.0 means "
+    "wrong/absent, 1.0 means a perfect answer, and partial credit falls in between. Keep it consistent "
+    "with the grade (INCORRECT near 0.0, PARTIAL around the middle, CORRECT near 1.0).\n"
     "- evidence_quote: copy a verbatim phrase from THAT answer that best justifies the grade "
     "(empty string if the candidate wrote nothing).\n"
     "- misconception: if that answer reveals a specific anti-pattern or foundational error, describe it "
@@ -37,6 +40,7 @@ SYSTEM_PROMPT = (
     '    {\n'
     '      "position": 1,\n'
     '      "grade": "CORRECT",\n'
+    '      "answer_score": 0.0,\n'
     '      "evidence_quote": "verbatim excerpt from the answer",\n'
     '      "misconception": null\n'
     '    }\n'
@@ -80,6 +84,7 @@ def _mock_result(num_questions: int) -> DiagnosticResult:
             QuestionGrade(
                 position=i,
                 grade="PARTIAL",
+                answer_score=0.5,
                 evidence_quote="[MOCK] No real evaluation — API key not set.",
                 misconception=None,
             )

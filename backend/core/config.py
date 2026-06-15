@@ -35,6 +35,17 @@ class Settings(BaseSettings):
     BKT_P_GUESS: float = 0.20     # P(G): chance of answering right despite not knowing it
     BKT_BASE_PRIOR: float = 0.30  # P(L0): prior mastery for a root concept before any evidence
 
+    # Beta-Bernoulli mastery model (per-concept Beta(alpha, beta) posterior; see
+    # services/learner/beta_mastery.py and docs/mastery-update.md). All hand-set;
+    # any could later be fit from interaction logs without touching the update math.
+    BETA_PRIOR_ALPHA: float = 2.0       # pseudo-evidence "for" mastery before any answer (prior mean 0.5)
+    BETA_PRIOR_BETA: float = 2.0        # pseudo-evidence "against" mastery before any answer
+    BETA_BASE_WEIGHT: float = 1.0       # evidence mass contributed by one answer
+    BETA_HALF_LIFE_DAYS: float = 30.0   # forgetting: accumulated evidence halves every this many days
+    BETA_MIN_EVIDENCE_MASS: float = 3.0 # gate: effective observations needed before trusting mastery
+    BETA_MASTERY_THRESHOLD: float = 0.7 # gate: posterior mean at/above this counts as mastered
+    BETA_CONFIDENCE_Z: float = 1.2816   # z-score for the one-sided credible lower bound (~90%)
+
     # Recommendation engine
     RECOMMEND_MASTERY_THRESHOLD: float = 0.7  # mastery at/above which a concept counts as "mastered"
     ROADMAP_MAX_STEPS: int = 10               # max concepts in the previewed learning roadmap

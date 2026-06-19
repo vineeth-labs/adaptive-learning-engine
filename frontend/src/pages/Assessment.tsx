@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import type { UseMutationResult } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 
-import { useStartAssessment, useSubmitAssessment } from "../api/hooks";
-import type { AssessmentSubmitResponse } from "../api/types";
+import { useSubmitAssessment } from "../api/hooks";
+import type {
+  AssessmentNextResponse,
+  AssessmentSubmitResponse,
+} from "../api/types";
 import { AssessmentResults } from "../components/assessment/AssessmentResults";
 import {
   QuestionStep,
@@ -11,25 +15,17 @@ import {
 
 interface AssessmentProps {
   userId: string;
+  /** The start-assessment mutation, fired by the caller on the user's click. */
+  start: UseMutationResult<AssessmentNextResponse, Error, void, unknown>;
   onExit: () => void;
 }
 
-export function Assessment({ userId, onExit }: AssessmentProps) {
-  const start = useStartAssessment(userId);
+export function Assessment({ userId, start, onExit }: AssessmentProps) {
   const submit = useSubmitAssessment(userId);
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<AssessmentSubmitResponse | null>(null);
-
-  // Kick off generation once on mount (guarded against StrictMode double-invoke).
-  const startedRef = useRef(false);
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    start.mutate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const assessment = start.data;
   const questions = useMemo(() => assessment?.questions ?? [], [assessment]);
@@ -58,7 +54,7 @@ export function Assessment({ userId, onExit }: AssessmentProps) {
       <Shell onExit={onExit}>
         <ErrorCard
           title="Couldn't start an assessment"
-          message={(start.error as Error).message}
+          message={start.error.message}
           onRetry={() => start.mutate()}
         />
       </Shell>

@@ -1,0 +1,19 @@
+I am going to build a production-ready Next.js dashboard component for your assessment tracker.
+
+This dashboard is designed to answer those two critical questions immediately: "Where am I?" (via the mastery visualizer) and "What do I do next?" (via the prominent recommendation engine card).
+
+Here is the complete, self-contained React file. In a Next.js environment, you would typically place this in app/page.tsx (or app/dashboard/page.tsx). I've included recharts for the mastery visualization and lucide-react for clean iconography.
+
+This dashboard UI is built with Tailwind CSS, Recharts for the mastery visualization, and Lucide icons.
+
+Key UX decisions implemented in this file:
+
+The "Up Next For You" Hero: Notice how much screen real estate this takes up. It completely bypasses decision fatigue by telling the user exactly what to click next based on their role target.
+
+Domain Mastery Radar: The Recharts radar chart provides an instant "shape" of their knowledge. If a user is weak in Security but strong in Databases, the chart visually caves in on the Security axis, immediately prompting action.
+
+Progressive Concept Breakdown: The list on the right breaks down individual concepts, tagging them with status badges ("Mastered", "Needs Review") and color-coded progress bars to provide granular context.
+
+Responsive: It includes a fixed sidebar for desktop that automatically converts into a fixed bottom app-bar for mobile devices.
+
+To run this in a standard Next.js project, simply drop the code into your page.jsx or page.tsx file and ensure you have recharts and lucide-react installed via npm/pnpm.

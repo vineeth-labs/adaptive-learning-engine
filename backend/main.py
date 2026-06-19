@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from backend.api.routes.domains import router as domains_router
@@ -31,6 +32,15 @@ app = FastAPI(
     description="Backend API for managing competency mapping, learner state, and assessments.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# Allow the local Vite dev server (frontend/) to call the API from the browser.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Base API v1 router

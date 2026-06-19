@@ -120,6 +120,13 @@ No DB, no LLM, no network required for any test in this section — all packages
 | 22 | `test_preview_path_max_steps` | Path length never exceeds `max_steps` | [x] |
 | 23 | `test_recommend_path_first_matches_recommend_next` | First element of `recommend_path` == `recommend_next_to_study()` | [x] |
 | 24 | `test_preview_path_does_not_mutate_tracer` | Calling `preview_path` does not change the tracer's belief state | [x] |
+| 25 | `test_cluster_empty_when_nothing_learnable` | `select_frontier_cluster` returns `[]` when all reachable concepts are mastered/settled | [x] |
+| 26 | `test_cluster_single_seed_when_frontier_thin` | Returns just `[seed]` when only one concept is on the frontier | [x] |
+| 27 | `test_cluster_first_element_is_select_next_seed` | `cluster[0]` equals `select_next()` | [x] |
+| 28 | `test_cluster_prefers_related_over_unrelated` | A related frontier sibling is chosen over an unrelated frontier concept | [x] |
+| 29 | `test_cluster_all_members_on_frontier` | Every cluster member has its prerequisites mastered; members are distinct | [x] |
+| 30 | `test_cluster_size_one_returns_only_seed` | `size=1` returns only the seed | [x] |
+| 31 | `test_cluster_does_not_mutate_tracer` | `select_frontier_cluster` leaves the belief state unchanged | [x] |
 
 ---
 
@@ -155,6 +162,23 @@ No DB, no LLM, no network required for any test in this section — all packages
 | 6 | `test_generated_questions_nonempty` | `GeneratedQuestions` requires at least one question | [x] |
 | 7 | `test_domain_response_valid` | `DomainResponse` round-trips with name and id | [x] |
 | 8 | `test_concept_node_mastery_default` | `ConceptNode` defaults mastery to 0.0 when not provided | [x] |
+
+---
+
+## 1g — Frontier Assessment building blocks
+
+**Files under test:** `backend/services/llm/scenario_generator.py` (`generate_cluster_scenario`),
+`backend/api/routes/assessments.py` (`_group_questions_by_concept`)
+**Test file:** `tests/unit/test_frontier.py`
+
+| # | Test | What it covers | Done |
+|---|------|----------------|------|
+| 1 | `test_one_question_per_concept_in_order` | Mock cluster scenario returns one question per concept, in cluster order | [x] |
+| 2 | `test_empty_cluster_returns_empty` | `generate_cluster_scenario([])` returns `[]` | [x] |
+| 3 | `test_null_concept_falls_back_to_seed` | Questions with no `concept_id` group under the seed concept | [x] |
+| 4 | `test_splits_by_concept` | Questions group correctly by their `concept_id` | [x] |
+| 5 | `test_ordered_by_position_within_group` | Each group is ordered by question position | [x] |
+| 6 | `test_mixed_null_and_tagged` | NULL and seed-tagged questions fold into the same group | [x] |
 
 ---
 

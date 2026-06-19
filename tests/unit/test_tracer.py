@@ -503,3 +503,83 @@ class TestRecommendPath:
             params=DEFAULT,
         )
         assert tracer.recommend_path() == []
+
+
+# ---------------------------------------------------------------------------
+# select_frontier_cluster
+# ---------------------------------------------------------------------------
+
+def _master(tracer: KnowledgeTracer, concept_id: str, n: int = 5) -> None:
+    """Drive a concept above threshold with enough correct answers to be 'settled'."""
+    for _ in range(n):
+        tracer.observe(concept_id, correct=True)
+
+
+class TestSelectFrontierCluster:
+    def test_empty_when_nothing_learnable(self):
+        # Both roots mastered and well-sampled -> no frontier candidates left.
+        tracer = KnowledgeTracer(twin_roots_graph(), DEFAULT)
+        _master(tracer, "A")
+        _master(tracer, "B")
+        assert tracer.select_frontier_cluster(size=3, mastery_threshold=THRESHOLD) == []
+
+    def test_single_seed_when_frontier_thin(self):
+        # Cold-start linear graph: only the root A is ready, so the cluster is just [A].
+        tracer = KnowledgeTracer(linear_graph(), DEFAULT)
+        assert tracer.select_frontier_cluster(size=3, mastery_threshold=THRESHOLD) == ["A"]
+
+    def test_first_element_is_select_next_seed(self):
+        # R1 -> b1,b2 ; R2 -> a0. Master both hubs equally.
+        graph = ConceptGraph([
+            _c("r1"), _c("r2"),
+            _c("b1", "r1"), _c("b2", "r1"), _c("a0", "r2"),
+        ])
+        tracer = KnowledgeTracer(graph, DEFAULT)
+        _master(tracer, "r1")
+        _master(tracer, "r2")
+        cluster = tracer.select_frontier_cluster(size=2, mastery_threshold=THRESHOLD)
+        seed = tracer.select_next(mastery_threshold=THRESHOLD)
+        assert cluster[0] == seed
+
+    def test_prefers_related_over_unrelated(self):
+        # b1,b2 share prereq r1 (mutually related); a0 (prereq r2) is unrelated to them.
+        # Equal beliefs -> seed is max id "b2"; its related sibling b1 must be picked
+        # over the unrelated a0 for a size-2 cluster.
+        graph = ConceptGraph([
+            _c("r1"), _c("r2"),
+            _c("b1", "r1"), _c("b2", "r1"), _c("a0", "r2"),
+        ])
+        tracer = KnowledgeTracer(graph, DEFAULT)
+        _master(tracer, "r1")
+        _master(tracer, "r2")
+        cluster = tracer.select_frontier_cluster(size=2, mastery_threshold=THRESHOLD)
+        assert cluster == ["b2", "b1"]
+        assert "a0" not in cluster
+
+    def test_all_members_are_on_the_frontier(self):
+        graph = ConceptGraph([
+            _c("r"), _c("c1", "r"), _c("c2", "r"), _c("c3", "r"),
+        ])
+        tracer = KnowledgeTracer(graph, DEFAULT)
+        _master(tracer, "r")
+        cluster = tracer.select_frontier_cluster(size=3, mastery_threshold=THRESHOLD)
+        assert len(cluster) == 3
+        assert len(set(cluster)) == 3  # distinct
+        for cid in cluster:
+            assert tracer._is_ready(cid, THRESHOLD)  # prerequisites mastered
+
+    def test_size_one_returns_only_seed(self):
+        graph = ConceptGraph([_c("r"), _c("c1", "r"), _c("c2", "r")])
+        tracer = KnowledgeTracer(graph, DEFAULT)
+        _master(tracer, "r")
+        cluster = tracer.select_frontier_cluster(size=1, mastery_threshold=THRESHOLD)
+        assert len(cluster) == 1
+        assert cluster[0] == tracer.select_next(mastery_threshold=THRESHOLD)
+
+    def test_does_not_mutate_tracer(self):
+        graph = ConceptGraph([_c("r"), _c("c1", "r"), _c("c2", "r")])
+        tracer = KnowledgeTracer(graph, DEFAULT)
+        _master(tracer, "r")
+        before = tracer.beliefs()
+        tracer.select_frontier_cluster(size=3, mastery_threshold=THRESHOLD)
+        assert tracer.beliefs() == before

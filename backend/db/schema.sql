@@ -64,13 +64,20 @@ CREATE TABLE IF NOT EXISTS assessments (
 );
 
 -- 6b. Assessment Questions Table (One row per generated free-text question + its response)
+-- concept_id is the specific concept this question targets. NULL for legacy/single-concept
+-- assessments, where the parent assessment's concept_id is the target; multi-concept
+-- (frontier) assessments set it per question so each grade updates its own concept.
 CREATE TABLE IF NOT EXISTS assessment_questions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     assessment_id UUID REFERENCES assessments(id) ON DELETE CASCADE,
+    concept_id UUID REFERENCES concepts(id) ON DELETE CASCADE,
     position INT NOT NULL,
     question_text TEXT NOT NULL,
     user_response TEXT
 );
+-- Idempotent add for DBs created before concept_id existed (CREATE TABLE IF NOT EXISTS
+-- above is a no-op on an existing table, so the column is added here).
+ALTER TABLE assessment_questions ADD COLUMN IF NOT EXISTS concept_id UUID REFERENCES concepts(id) ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS assessment_questions_assessment_idx ON assessment_questions (assessment_id);
 
 -- 7. Assessment Results Table (The Q-matrix multi-concept mapping)

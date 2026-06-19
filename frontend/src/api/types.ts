@@ -30,6 +30,62 @@ export interface UserMapResponse {
   edges: ConceptEdge[];
 }
 
+// --- Assessment flow (backend/schemas/assessment.py) ---
+
+export interface AssessmentQuestion {
+  id: string;
+  position: number;
+  question_text: string;
+  /** Target concept for this question (frontier assessments); null for legacy single-concept. */
+  concept_id: string | null;
+}
+
+export interface TargetConcept {
+  concept_id: string;
+  concept_name: string;
+}
+
+/** Response of POST /assessments/next. */
+export interface AssessmentNextResponse {
+  assessment_id: string;
+  user_id: string;
+  status: string;
+  target_concepts: TargetConcept[];
+  questions: AssessmentQuestion[];
+  created_at: string;
+  message: string;
+}
+
+/** One answer in the submit payload. */
+export interface QuestionResponse {
+  question_id: string;
+  response_text: string;
+}
+
+export interface AssessmentSubmitRequest {
+  user_id: string;
+  responses: QuestionResponse[];
+}
+
+export interface ConceptMasteryUpdate {
+  concept_id: string;
+  concept_name: string;
+  /** Updated mastery belief, 0.0–1.0. */
+  mastery_score: number;
+  misconception: string | null;
+}
+
+/** Response of POST /assessments/{id}/submit. */
+export interface AssessmentSubmitResponse {
+  assessment_id: string;
+  status: string;
+  concept_results: ConceptMasteryUpdate[];
+  /** Back-compat: seed (first) concept's mastery. */
+  mastery_score: number;
+  misconception: string | null;
+  message: string;
+}
+
 export type ActionType = "assess" | "review" | "teach";
 
 export interface RecommendationDetail {

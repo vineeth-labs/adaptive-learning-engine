@@ -41,14 +41,24 @@ in-memory mock data shaped to the real API schema. No Postgres or backend requir
    ```
 3. `npm run dev` again.
 
+## Screens
+
+- **Dashboard** — recommendation hero, mastery radar, concept deep-dive.
+- **Take Assessment** — clicking the hero's action button starts a frontier
+  assessment (`POST /assessments/next`), steps through one free-text question per
+  concept, submits (`POST /assessments/{id}/submit`), and shows per-concept mastery
+  updates. On completion the dashboard's competency map and recommendation are
+  invalidated so they reflect the new mastery. In mock mode a deterministic local
+  grader rewards longer, more substantive answers.
+
 ## Structure
 
 ```
 src/
   api/        types.ts (mirror backend schemas) · client.ts · mocks.ts · hooks.ts (React Query) · config.ts
   lib/        mastery.ts — pure derivations (status thresholds, radar grouping, readiness)
-  components/ ui/ · layout/ · dashboard/ (RecommendationHero, MasteryRadar, ConceptDeepDive)
-  pages/      Dashboard.tsx
+  components/ ui/ · layout/ · dashboard/ · assessment/ (QuestionStep, AssessmentResults)
+  pages/      Dashboard.tsx · Assessment.tsx
   App.tsx · main.tsx
 ```
 
@@ -62,6 +72,5 @@ src/
 ## Not yet implemented
 
 - Other nav screens (My Path, Concept Library, Analytics) are static links.
-- The assessment-taking flow (`POST /assessments/next` → `/submit`) — the hero's button is a stub.
 - Level / streak / display name / target role have no backend source and are static placeholders.
 ```

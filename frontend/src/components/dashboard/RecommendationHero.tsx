@@ -24,7 +24,13 @@ function payloadString(
   return typeof v === "string" ? v : undefined;
 }
 
-export function RecommendationHero({ rec }: { rec: RecommendationResponse }) {
+export function RecommendationHero({
+  rec,
+  onStart,
+}: {
+  rec: RecommendationResponse;
+  onStart: () => void;
+}) {
   const top = rec.recommended_concepts[0];
 
   // Empty frontier: nothing learnable right now.
@@ -87,7 +93,10 @@ export function RecommendationHero({ rec }: { rec: RecommendationResponse }) {
           </div>
         </div>
 
-        <button className="w-full md:w-auto bg-white text-indigo-900 hover:bg-indigo-50 transition-colors px-8 py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-white/10 group-hover:scale-105 duration-200">
+        <button
+          onClick={onStart}
+          className="w-full md:w-auto bg-white text-indigo-900 hover:bg-indigo-50 transition-colors px-8 py-4 rounded-2xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-white/10 group-hover:scale-105 duration-200"
+        >
           <Play size={20} className="fill-current" />
           <span>{ACTION_VERB[rec.action_type]}</span>
         </button>

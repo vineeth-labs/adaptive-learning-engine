@@ -2,7 +2,13 @@
 // Used when VITE_USE_MOCKS !== "false" so the dashboard renders with no backend.
 // Concept names/paths mirror backend/curriculum/programming/java.yaml.
 
-import type { RecommendationResponse, UserMapResponse } from "./types";
+import type {
+  AssessmentNextResponse,
+  AssessmentSubmitRequest,
+  AssessmentSubmitResponse,
+  RecommendationResponse,
+  UserMapResponse,
+} from "./types";
 
 const DOMAIN_ID = "11111111-1111-1111-1111-111111111111";
 const USER_ID = "00000000-0000-0000-0000-000000000001";
@@ -64,3 +70,77 @@ export const MOCK_RECOMMENDATION: RecommendationResponse = {
     "Your prerequisites (Classes, Inheritance) are in place, but Polymorphism mastery is still low and it unlocks several downstream OOP concepts — the highest-leverage next step.",
   payload: { estimated_minutes: 15, num_questions: 3, difficulty: "Intermediate" },
 };
+
+// A frontier cluster of 2 related, low-mastery concepts (mirrors POST /assessments/next).
+export const MOCK_ASSESSMENT: AssessmentNextResponse = {
+  assessment_id: "a0000000-0000-0000-0000-0000000000aa",
+  user_id: USER_ID,
+  status: "generated",
+  target_concepts: [
+    { concept_id: "c-polymorphism", concept_name: "Polymorphism" },
+    { concept_id: "c-recursion", concept_name: "Recursion" },
+  ],
+  questions: [
+    {
+      id: "q-1",
+      position: 1,
+      concept_id: "c-polymorphism",
+      question_text:
+        "You have an Animal base class and Dog and Cat subclasses that each override a speak() method. Explain what happens at runtime when you call speak() on an Animal reference that points to a Dog object, and why. What would change if speak() were a static method?",
+    },
+    {
+      id: "q-2",
+      position: 2,
+      concept_id: "c-recursion",
+      question_text:
+        "Write a recursive method to compute the factorial of a non-negative integer n. Identify the base case and the recursive case, and explain what would happen if the base case were missing.",
+    },
+  ],
+  created_at: new Date().toISOString(),
+  message: "Frontier assessment over 2 related concept(s).",
+};
+
+/**
+ * Deterministic mock grader: rewards longer, more substantive answers so the flow
+ * feels responsive without a backend. Real grading is the LLM diagnostic evaluator.
+ */
+export function mockSubmitAssessment(
+  payload: AssessmentSubmitRequest,
+): AssessmentSubmitResponse {
+  const byConcept: Record<string, { name: string; len: number }> = {
+    "q-1": { name: "Polymorphism", len: 0 },
+    "q-2": { name: "Recursion", len: 0 },
+  };
+  const conceptIdFor: Record<string, string> = {
+    "q-1": "c-polymorphism",
+    "q-2": "c-recursion",
+  };
+
+  for (const r of payload.responses) {
+    if (byConcept[r.question_id]) {
+      byConcept[r.question_id].len = r.response_text.trim().length;
+    }
+  }
+
+  const concept_results = Object.entries(byConcept).map(([qid, { name, len }]) => {
+    // Map answer length to a 0.3–0.95 mastery, clamped.
+    const score = Math.min(0.95, Math.max(0.3, 0.3 + len / 300));
+    return {
+      concept_id: conceptIdFor[qid],
+      concept_name: name,
+      mastery_score: Math.round(score * 100) / 100,
+      misconception:
+        len < 40 ? "Answer was too brief to demonstrate understanding." : null,
+    };
+  });
+
+  const seed = concept_results[0];
+  return {
+    assessment_id: MOCK_ASSESSMENT.assessment_id,
+    status: "evaluated",
+    concept_results,
+    mastery_score: seed.mastery_score,
+    misconception: seed.misconception,
+    message: "Assessment submitted and evaluated successfully.",
+  };
+}

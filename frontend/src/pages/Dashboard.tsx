@@ -11,7 +11,11 @@ import { TopBadges } from "../components/layout/TopBadges";
 const USER_NAME = "Alex";
 const TARGET_ROLE = "Java Backend Engineer";
 
-export function Dashboard() {
+export function Dashboard({
+  onStartAssessment,
+}: {
+  onStartAssessment: () => void;
+}) {
   const map = useCompetencyMap(USER_ID);
   const rec = useNextRecommendation(USER_ID);
 
@@ -43,7 +47,12 @@ export function Dashboard() {
           message={(rec.error as Error).message}
         />
       ) : (
-        rec.data && <RecommendationHero rec={rec.data} />
+        rec.data && (
+          <RecommendationHero
+            rec={rec.data}
+            onStart={onStartAssessment}
+          />
+        )
       )}
 
       {/* METRICS GRID */}

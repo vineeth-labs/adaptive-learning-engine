@@ -26,6 +26,9 @@ class AssessmentQuestionOut(BaseModel):
     id: UUID
     position: int
     question_text: str
+    # The concept this question targets (multi-concept/frontier assessments). NULL for
+    # legacy single-concept assessments, where the parent assessment's concept is the target.
+    concept_id: Optional[UUID] = None
 
 class AssessmentGenerateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -37,6 +40,32 @@ class AssessmentGenerateResponse(BaseModel):
     status: str
     questions: List[AssessmentQuestionOut]
     created_at: datetime
+
+
+# --- Frontier Assessment (POST /api/v1/assessments/next) ---
+
+class AssessmentNextRequest(BaseModel):
+    user_id: UUID
+    num_concepts: Optional[int] = Field(
+        None, description="How many related frontier concepts to cluster (clamped to 2-3)"
+    )
+
+class TargetConcept(BaseModel):
+    concept_id: UUID
+    concept_name: str
+
+class AssessmentNextResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    assessment_id: UUID
+    user_id: UUID
+    status: str
+    # The frontier cluster this assessment targets, seed first. Empty when the learner
+    # has no learnable frontier (everything reachable is mastered or blocked).
+    target_concepts: List[TargetConcept]
+    questions: List[AssessmentQuestionOut]
+    created_at: datetime
+    message: str
 
 # Agent 1 Output Specification (GPT-4o)
 class ConceptEvaluation(BaseModel):
@@ -111,9 +140,18 @@ class DiagnosticResult(BaseModel):
     misconception: Optional[str] = Field(None,
         description="Overall/most significant misconception across the responses, or null if none")
 
+class ConceptMasteryUpdate(BaseModel):
+    concept_id: UUID
+    concept_name: str
+    mastery_score: float
+    misconception: Optional[str] = None
+
 class AssessmentSubmitResponse(BaseModel):
     assessment_id: UUID
     status: str
+    # Per-concept mastery updates. Single-concept assessments yield a one-element list.
+    concept_results: List[ConceptMasteryUpdate]
+    # Back-compat top-level fields, populated from the seed (first) concept result.
     mastery_score: float
     misconception: Optional[str]
     message: str

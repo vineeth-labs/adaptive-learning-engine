@@ -180,6 +180,100 @@ class KnowledgeTracer:
         # (score, id) so ties break deterministically by id.
         return max(candidates, key=lambda c: (score(c), c))
 
+    def _frontier_candidates(
+        self,
+        *,
+        mastery_threshold: float,
+        confident_low: float,
+        confident_high: float,
+        min_questions: int,
+    ) -> list[str]:
+        """Concepts on the learning frontier: prerequisites mastered, and either
+        under-sampled or still uncertain. Same predicate ``select_next`` uses."""
+        out: list[str] = []
+        for cid in self.graph.concepts:
+            if not self._is_ready(cid, mastery_threshold):
+                continue
+            b = self._belief[cid]
+            if self.counts[cid] < min_questions or confident_low < b < confident_high:
+                out.append(cid)
+        return out
+
+    def select_frontier_cluster(
+        self,
+        *,
+        size: int = 3,
+        mastery_threshold: float = 0.6,
+        confident_low: float = 0.15,
+        confident_high: float = 0.85,
+        min_questions: int = 3,
+        strategy: str = "uncertainty",
+    ) -> list[str]:
+        """Pick up to ``size`` *related* frontier concepts to assess together.
+
+        The seed is the single best concept ``select_next`` would probe (highest
+        uncertainty/EIG). The cluster then grows by adding the frontier candidates
+        most *related* to the seed -- concepts that share a prerequisite with the
+        seed or sit directly adjacent to it in the graph -- so the generated
+        scenario can weave them together naturally (TECH_SPEC 3.3). If too few
+        related candidates exist, it fills the remaining slots with the next most
+        uncertain frontier concepts. Returns ``[]`` when the frontier is empty
+        (nothing learnable), or a 1-element list when only the seed qualifies.
+        Pure read over the current belief state -- does not mutate the tracer.
+        """
+        seed = self.select_next(
+            mastery_threshold=mastery_threshold,
+            confident_low=confident_low,
+            confident_high=confident_high,
+            min_questions=min_questions,
+            strategy=strategy,
+        )
+        if seed is None:
+            return []
+        if size <= 1:
+            return [seed]
+
+        candidates = [
+            c for c in self._frontier_candidates(
+                mastery_threshold=mastery_threshold,
+                confident_low=confident_low,
+                confident_high=confident_high,
+                min_questions=min_questions,
+            )
+            if c != seed
+        ]
+
+        if strategy == "eig":
+            score = lambda c: bkt.expected_information_gain(self._belief[c], self.params)
+        else:
+            score = lambda c: bkt.entropy(self._belief[c])
+
+        # Concepts "related" to the seed: shared prerequisite, or direct neighbour.
+        seed_prereqs = set(self.graph.prerequisites(seed))
+        neighbours = set(self.graph.direct_dependents(seed)) | seed_prereqs
+
+        def is_related(c: str) -> bool:
+            return c in neighbours or bool(seed_prereqs & set(self.graph.prerequisites(c)))
+
+        # Prefer related candidates; rank each group by uncertainty, tie-break by id.
+        related = sorted(
+            (c for c in candidates if is_related(c)),
+            key=lambda c: (score(c), c),
+            reverse=True,
+        )
+        unrelated = sorted(
+            (c for c in candidates if not is_related(c)),
+            key=lambda c: (score(c), c),
+            reverse=True,
+        )
+
+        cluster = [seed]
+        for c in related + unrelated:
+            if len(cluster) >= size:
+                break
+            cluster.append(c)
+        return cluster
+
     def preview_path(
         self,
         *,

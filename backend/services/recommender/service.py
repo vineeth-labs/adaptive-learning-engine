@@ -14,21 +14,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
-from backend.db.models import (
-    Concept,
-    ConceptRelationship,
-    LearnerState,
-    Recommendation,
-    User,
-)
+from backend.db.models import Recommendation, User
 from backend.schemas import (
     ActionType,
     RecommendationDetail,
     RecommendationResponse,
 )
-from backend.services.graph import Concept as GraphConcept, ConceptGraph
-from backend.services.learner.mastery import _PARAMS
-from backend.services.learner.tracer import KnowledgeTracer
+from backend.services.learner.rehydrate import build_tracer
 
 
 async def recommend_next(user_id: uuid.UUID, db: AsyncSession) -> RecommendationResponse:
@@ -43,46 +35,16 @@ async def recommend_next(user_id: uuid.UUID, db: AsyncSession) -> Recommendation
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Load the concept graph (single domain in the DB; mirror the competency-map scope).
-    concepts = (await db.execute(select(Concept))).scalars().all()
-    if not concepts:
+    # Rehydrate the learner's belief vector from stored state (shared with the frontier
+    # endpoint, so both read the same beliefs). Only rows with real evidence seed the
+    # tracer; everything else keeps its dynamic prereq-gated prior.
+    rehydrated = await build_tracer(user_id, db)
+    if rehydrated is None:
         raise HTTPException(status_code=404, detail="No concepts found")
-    concept_by_id = {str(c.id): c for c in concepts}
-
-    prereq_rows = (
-        await db.execute(
-            select(ConceptRelationship.source_id, ConceptRelationship.target_id).where(
-                ConceptRelationship.relation_type == "prerequisite"
-            )
-        )
-    ).all()
-    # An edge source -> target means source is a prerequisite of target.
-    prereqs_of: dict[str, list[str]] = {cid: [] for cid in concept_by_id}
-    for source_id, target_id in prereq_rows:
-        s, t = str(source_id), str(target_id)
-        if s in concept_by_id and t in concept_by_id:
-            prereqs_of[t].append(s)
-
-    graph = ConceptGraph(
-        GraphConcept(
-            id=str(c.id),
-            name=c.name,
-            prerequisites=tuple(prereqs_of[str(c.id)]),
-            difficulty=c.difficulty,
-        )
-        for c in concepts
-    )
-
-    # Rehydrate the learner's belief vector from stored state. Only rows with real
-    # evidence are passed; everything else keeps its dynamic prereq-gated prior.
-    states = (
-        await db.execute(select(LearnerState).where(LearnerState.user_id == user_id))
-    ).scalars().all()
-    state_by_id = {str(s.concept_id): s for s in states}
-    mastery = {sid: s.mastery for sid, s in state_by_id.items() if (s.evidence_count or 0) > 0}
-    counts = {sid: s.evidence_count for sid, s in state_by_id.items() if (s.evidence_count or 0) > 0}
-
-    tracer = KnowledgeTracer.from_state(graph, mastery, counts=counts, params=_PARAMS)
+    graph = rehydrated.graph
+    tracer = rehydrated.tracer
+    concept_by_id = rehydrated.concept_by_id
+    state_by_id = rehydrated.state_by_id
     threshold = settings.RECOMMEND_MASTERY_THRESHOLD
 
     rec_id = tracer.recommend_next_to_study(mastery_threshold=threshold)

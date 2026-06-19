@@ -2,7 +2,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy import func
 import sqlalchemy as sa
 from .base import Base
@@ -27,6 +27,9 @@ class AssessmentQuestion(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     assessment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), sa.ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False)
+    # The concept this question targets. NULL = single-concept assessment (fall back to
+    # the parent assessment's concept_id); set per question for multi-concept (frontier) ones.
+    concept_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), sa.ForeignKey("concepts.id", ondelete="CASCADE"), nullable=True)
     position: Mapped[int] = mapped_column(sa.Integer, nullable=False)
     question_text: Mapped[str] = mapped_column(sa.Text, nullable=False)
     user_response: Mapped[str] = mapped_column(sa.Text, nullable=True)
